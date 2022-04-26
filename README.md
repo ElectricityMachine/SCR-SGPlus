@@ -32,7 +32,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ---
 
 ### Installation
-## **Windows** ![Windows](img/windows_65.png)
+## **Windows**
 1. Download and install the latest Python3 installer from [Python Downloads Page](https://www.python.org/downloads/)
    - IMPORTANT: Make sure to check the box during installation which adds Python to PATH. Labeled something like **Add Python 3.X to PATH**
 2. Download the latest release in the [Releases section of this repo](https://github.com/ElectricityMachine/SCR-SGPlus/releases/)
