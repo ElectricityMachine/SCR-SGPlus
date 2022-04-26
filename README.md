@@ -42,3 +42,6 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 5. Enter the folder where the script and images are stored, then in the Windows File Explorer address bar, type "cmd". A Command Prompt window should pop up.
 6. In that CMD window, run ``pip install -m requirements.txt``. This will download all the requirements for the script to function.
 7. After the installation has completed, run ``python script.py``. A console window will appear and the macro is now active.
+
+### License
+By using this script, you MUST adhere to the license terms in the LICENSE file.
