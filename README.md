@@ -1,11 +1,18 @@
 <h1 align="center">SCR: SG+</h1>
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience.
+SG+ is a macro script written in Python that streamlines your signalling experience by automating clicking signals to change aspects.
+
+### Will this get me demoted? Am I safe to use this?
+**There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
+
+### Usage:
+- Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
+- Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
 
 ### Features
+- Automates changing signal aspects, allowing you to clear trains quickly
 - Lightweight and optimized
-- Automates changing signal aspects, allowing you to clear trains with minimal delay
 - Only works while ROBLOX is focused and the script is enabled, thus providing safety so you don't inadvertantly press a key and you aren't hovered over a signal
 - Audio cue when the script is enabled or disabled
 - Very few to no false positives, meaning that if you press a key, the script will not run 99.9% of the time if there's no signal dialog. Please be aware that sometimes the script fails to pick up the dialog in very limited circumstances (see below) and that your mouse will click no matter what when you press 1-3.
@@ -44,3 +51,6 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 
 ### License
 By using this script, you MUST adhere to the license terms in the LICENSE file.
+
+### Contact information
+If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt that way to avoid scrapers and bots.
