@@ -1,5 +1,12 @@
 <h1 align="center">SCR: SG+</h1>
 
+<h1 align="center">
+   
+   ![macro-beechley_1_2](https://user-images.githubusercontent.com/47489506/165611305-da7b72a5-1492-4db0-b37a-3ce81f1aad22.gif)
+
+</h1>
+
+
 ### Description
 SG+ is a macro script written in Python that streamlines your signalling experience by automating clicking signals to change aspects.
 
