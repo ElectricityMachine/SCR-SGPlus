@@ -9,6 +9,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ### Usage:
 - Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
 - Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
+- Press F1 to enable or disable the script. You only need to do this if you are chatting or typing something in the command bar in ROBLOX.
 
 ### Features
 - Automates changing signal aspects, allowing you to clear trains quickly
