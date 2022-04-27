@@ -8,7 +8,7 @@
 
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience by automating clicking signals to change aspects.
+SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect or open a camera view with only one button press.
 
 ### Will this get me demoted? Am I safe to use this?
 **There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
@@ -16,19 +16,19 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ### Usage:
 - Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
 - Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
-- Press F1 to enable or disable the script. You only need to do this if you are chatting or typing things.
+- Press F1 to enable or disable the script. You only need to do this if you are chatting or typing things to prevent false activations.
 
 ### Features
-- Automates changing signal aspects, allowing you to clear trains quickly
-- Lightweight and optimized
-- Only works while ROBLOX is focused and the script is enabled, thus providing safety so you don't inadvertantly press a key and you aren't hovered over a signal
-- Audio cue when the script is enabled or disabled
-- Very few to no false positives, meaning that if you press a key, the script will not run 99.9% of the time if there's no signal dialog. Please be aware that sometimes the script fails to pick up the dialog in very limited circumstances (see below) and that your mouse will click no matter what when you press 1-3.
+- Only one button press is needed to change a signal aspect
+- Decreases setup and train clearing time significantly
+- Allows the signaller to focus on more important things than just clicking to change aspects
+- Quickly get in and out of a camera view (signals only for now)
 
 ### Planned features:
 - Rewrite camera code to use the aspect code to detect the image
 - Implement a visual indicator
 - Premade chat messages on numpad
+- TRTS Audio cue 
 
 ### Known issues:
 - If you are fully zoomed out, sometimes a signal on the very edge of your screen will not register. To fix, zoom in or manually click the signal aspect. So far, this has only happened at Beechley Station for me, but YMMV.
