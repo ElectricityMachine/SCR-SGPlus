@@ -6,3 +6,4 @@ PyAutoIt==0.6.5
 PyGetWindow==0.0.9
 pywin32==303
 opencv-python==4.5.5.62
+requests==2.27.1
