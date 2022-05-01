@@ -23,7 +23,7 @@ starttime = time.time()
 version = "v0.2.0"
 key_wait = 0
 backspace_wait = 0
-dialog_wait = 0.07
+dialog_wait = 0.08
 debug = True
 update_check = False
 
@@ -68,10 +68,7 @@ def color_approx_eq(color1, color2):
 	return abs(color1[0] - color2[0]) <= 7 and abs(color1[1] - color2[1]) <= 7 and abs(color1[2] - color2[2]) <= 7
 
 def screen_grab(x, y, width, height):
-	eggs2 = time.perf_counter()
 	image = PIL.ImageGrab.grab(bbox=[x, y, x + width, y + height])
-	eggs1 = time.perf_counter()
-	#print(eggs1 - eggs2)
 	return image
 
 def click_signal(sig):
