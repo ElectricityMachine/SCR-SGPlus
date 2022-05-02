@@ -20,7 +20,7 @@ import colorama
 
 starttime = time.time()
 
-version = "v0.2.0"
+version = "v0.2.1"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
