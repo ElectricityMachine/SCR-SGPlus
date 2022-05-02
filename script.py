@@ -21,7 +21,7 @@ import colorama
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.1"
+version = "v0.2.2"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
