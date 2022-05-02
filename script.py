@@ -23,7 +23,7 @@ starttime = time.time()
 version = "v0.2.0"
 key_wait = 0
 backspace_wait = 0
-dialog_wait = 0.08
+dialog_wait = 0.085
 debug = True
 update_check = False
 
