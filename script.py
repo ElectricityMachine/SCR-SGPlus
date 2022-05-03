@@ -169,9 +169,8 @@ def scan_for_dialog(type):
 		flag = False
 		for image in imagesToProcess:
 			for i in range(math.ceil(image.width/1.6)):
-				#if i > image.width/2: break
 				for val in color_vals:
-					r2 = val[0]
+					if i == 0 or image.height == 0: break
 					r, g, b = image.getpixel((i, image.height - 1))
 					if color_approx_eq((r,g,b), (val)):
 						flag = True
