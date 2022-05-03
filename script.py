@@ -21,12 +21,12 @@ import colorama
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.3"
+version = "v0.2.4"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
-debug = True
-update_check = False
+debug = False
+update_check = True
 
 color_vals ={
 	(0, 201, 0), # Lit Green
