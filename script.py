@@ -1,5 +1,5 @@
 # ElectricityMachine
-# Version: 0.2.0
+# Version: 0.2.5
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
@@ -21,19 +21,19 @@ import colorama
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.4"
+version = "v0.2.5"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
 debug = False
-update_check = True
+check_for_update = True
 
 color_vals ={
 	(0, 201, 0), # Lit Green
-	# (204, 153, 0), # Lit Yellow
+	(204, 153, 0), # Lit Yellow
 	(213, 0, 0), # Lit Red
-	#(0, 94, 0), # Unlit Green
-	#(96, 60, 0), # Unlit Yellow
+	(0, 94, 0), # Unlit Green
+	(96, 60, 0), # Unlit Yellow
 	(99, 0, 0), # Unlit Red
 }
 
@@ -41,6 +41,7 @@ disable = False
 running = False
 
 def update_check():
+	if not check_for_update: return
 	URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
 	r = requests.get(url = URL)
 	data = r.json()
@@ -164,8 +165,9 @@ def scan_for_dialog(type):
 		upperw, upperh = upper.size
 		lowerw, lowerh = lower.size
 		lowershelf = lower.crop((0, lowerh*2/3, lowerw, lowerh*2/3 + 1))
-		uppershelf = upper.crop((0, upperh/2, upperw, upperh/2 + 1))
+		uppershelf = upper.crop((0, upperh/2, upperw, upperh/2 + 2))
 		imagesToProcess = [lowershelf, uppershelf]
+		
 		flag = False
 		for image in imagesToProcess:
 			for i in range(math.ceil(image.width/1.6)):
