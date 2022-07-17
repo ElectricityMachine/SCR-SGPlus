@@ -31,7 +31,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - TRTS Audio cue 
 
 ### Known issues:
-- If you are fully zoomed out, sometimes a signal on the very edge of your screen will not register. To fix, zoom in or manually click the signal aspect. So far, this has only happened at Beechley Station for me, but YMMV.
+- Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
 
 ### Controls:
 
