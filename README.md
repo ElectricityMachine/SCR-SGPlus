@@ -52,9 +52,10 @@ SG+ is a macro script written in Python that streamlines your signalling experie
    - IMPORTANT: Make sure to check the box during installation which adds Python to PATH. Labeled something like **Add Python 3.X to PATH**
 2. Download the latest release in the [Releases section of this repo](https://github.com/ElectricityMachine/SCR-SGPlus/releases/). Click on "Source Code (zip)"
    - Note: If you want the development release with all the latest changes, press the green "Code" button on the main page of this repo and press "Download ZIP". The following instructions still apply.
-4. Extract the folder to your desired location.
+4. Extract the folder to your desired location. You can do this natively in Windows by opening the .zip folder and pressing "Extract all" at the top.
    - Note: If you are updating from an older version, please delete the old version of the script before extracting the new version. Failure to do so may cause conflicts and bugs.
-5. Enter the folder where the script and images are stored, then in the Windows File Explorer address bar, type "cmd". A Command Prompt window should pop up.
+5. Enter the folder where the script and images are stored, then in the Windows File Explorer address bar, type "cmd". A Command Prompt window should pop up. See the gif below for an example of how to do this. ![explorer_UNTq76MoQy](https://user-images.githubusercontent.com/47489506/181626707-6f58a2b6-e9e4-423e-9cb8-15d2add19cc7.gif)
+
 6. In that CMD window, run ``pip install -r requirements.txt``. This will download all the requirements for the script to function.
 7. After the installation has completed, run the ``start.bat`` batch file to start the script. A console window will appear, a beep will sound, and the macro is now active.
 
