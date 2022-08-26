@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="Icon">
+    <file>img/icon.png</file>
+  </qresource>
+  <qresource prefix="Signals">
+    <file>img/amber1.png</file>
+    <file>img/amber2.png</file>
+    <file>img/green.png</file>
+    <file>img/red.png</file>
+  </qresource>
+  <qresource prefix="BackgroundImage">
+    <file>img/background.png</file>
+  </qresource>
+</RCC>
