@@ -1,7 +1,7 @@
 autoit==0.2.4
 colorama==0.4.4
 keyboard==0.13.5
-Pillow==9.0.1
+Pillow==9.3.0
 PyAutoGUI==0.9.53
 PyAutoIt==0.6.5
 PyGetWindow==0.0.9
