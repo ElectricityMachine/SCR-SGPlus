@@ -1,4 +1,6 @@
-<h1><b> ATTENTION: A new SCR update has broken the functionality of the script. As this is a bug with SCR, I will be reporting it and attempting to have it fixed. In the meantime, please do not use SG+ until an update is out. </b></h1>
+<h1><b> ATTENTION: A new SCR update has broken the functionality of the script. If you notice a "Desk Exit" dialog appear when you change a signal, please try a different server or don't use the script. </b></h1>
+
+Reproducing this issue has been tricky, it seems to work some times but not other times. If you are affected by the issue, remember it is NOT caused by me, but rather an SCR/ROBLOX update.
 
 <h1 align="center">SCR: SG+</h1>
 
