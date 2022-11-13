@@ -1,3 +1,5 @@
+<h1><b> ATTENTION: A new SCR update has broken the functionality of the script. As this is a bug with SCR, I will be reporting it and attempting to have it fixed. In the meantime, please do not use SG+ until an update is out. </b></h1>
+
 <h1 align="center">SCR: SG+</h1>
 
 <h1 align="center">
