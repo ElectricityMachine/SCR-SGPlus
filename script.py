@@ -17,6 +17,7 @@ import PIL.ImageGrab
 import pygetwindow
 import requests
 import colorama
+import pyperclip
 
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
@@ -189,6 +190,24 @@ def scan_for_dialog(type):
 	elif type == "station":
 		if debug: print("None")
 
+def send_zone_message(zone):
+	if zone == "A":
+		pyperclip.copy("Zone A (Stepford Zone, along with Willowfield and Whitefield branches) is now under manual signalling control.")
+	elif zone == "B":
+		pyperclip.copy("Zone B (St. Helens Bridge, Coxly and Beaulieu Park corridor) is now under manual signalling control.")
+	elif zone == "C":
+		pyperclip.copy("Zone C (Stepford Airport Area) is now under manual siganlling control.")
+	elif zone == "D":
+		pyperclip.copy("Zone D (Morganstown, Leighton line and Leighton West Branch) is now under manual signalling control.")
+	elif zone == "E":
+		pyperclip.copy("Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.")
+	elif zone == "F":
+		pyperclip.copy("Zone F (General Benton area, including Waterline) is now under manual signalling control.")
+	elif zone == "G":
+		pyperclip.copy("Zone G (Esterfield line) is now under manual signalling control.")
+	
+	winsound.Beep(600, 200)
+
 # old_print=print
 # def print(*args):
 # 	old_print(math.trunc(time.time() - starttime))
@@ -204,6 +223,13 @@ keyboard.add_hotkey(4, click_signal, args=["3"]) # 3
 keyboard.add_hotkey(46, click_camera_button) # C
 keyboard.add_hotkey(59, toggle_disable) # F1
 keyboard.add_hotkey(82, test) # Num 0
+keyboard.add_hotkey(79, send_zone_message, args=["A"]) # Num 1
+keyboard.add_hotkey(80, send_zone_message, args=["B"]) # Num 2
+keyboard.add_hotkey(81, send_zone_message, args=["C"]) # Num 3
+keyboard.add_hotkey(75, send_zone_message, args=["D"]) # Num 4
+keyboard.add_hotkey(76, send_zone_message, args=["E"]) # Num 5
+keyboard.add_hotkey(77, send_zone_message, args=["F"]) # Num 6
+keyboard.add_hotkey(71, send_zone_message, args=["G"]) # Num 7
 
 # 0: 82
 # 1: 79
