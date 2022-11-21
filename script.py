@@ -192,13 +192,13 @@ def scan_for_dialog(type):
 def send_zone_message(zone):
 	if not able_to_run(): return
 	switch = {
-		'A': "Zone A (Stepford Zone, along with Willowfield and Whitefield branches) is now under manual signalling control.",
-		'B': "Zone B (St. Helens Bridge, Coxly and Beaulieu Park corridor) is now under manual signalling control.",
+		'A': "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
+		'B': "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
 		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
-		'D': "Zone D (Morganstown, Leighton line and Leighton West Branch) is now under manual signalling control.",
+		'D': "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
 		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
-		'F': "Zone F (General Benton area, including Waterline) is now under manual signalling control.",
-		'G': "Zone G (Esterfield line) is now under manual signalling control."
+		'F': "Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control.",
+		'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
 	}
 
 	winsound.Beep(600, 200)
