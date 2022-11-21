@@ -27,7 +27,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Decreases setup and train clearing time significantly
 - Allows the signaller to focus on more important things than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
-- Premade chat messages on numpad
+- Use numpad 1-7 to copy zone opening messages to your clipboard (1 for A, 2 for B, etc.)
 
 ### Planned features:
 - Rewrite camera code to use the aspect code to detect the image
