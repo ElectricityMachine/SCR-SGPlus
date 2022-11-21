@@ -27,17 +27,17 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Decreases setup and train clearing time significantly
 - Allows the signaller to focus on more important things than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
+- Premade chat messages on numpad
 
 ### Planned features:
 - Rewrite camera code to use the aspect code to detect the image
 - Implement a visual indicator
-- Premade chat messages on numpad
 - TRTS Audio cue 
 
 ### Known issues:
 - Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
 
-### Controls:
+### Controls (all configurable):
 
 ---
 |Key|Action|
@@ -47,6 +47,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |2|Change currently hovered signal to Caution|
 |3|Change currently hovered signal to Proceed|
 |C|Enter camera mode of currently hovered signal. If you are already in camera mode, it will exit camera mode|
+|Numpad 1-7|Copy respective zone message to clipboard|
 ---
 
 ### **Installation**
