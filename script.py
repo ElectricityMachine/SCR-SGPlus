@@ -1,5 +1,5 @@
 # ElectricityMachine
-# Version: 0.2.7
+# Version: 0.2.8
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
@@ -22,7 +22,7 @@ import pyperclip
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.7"
+version = "v0.2.8"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
@@ -80,7 +80,6 @@ def click_signal(sig):
 		keyboard.press_and_release(sig)
 		time.sleep(backspace_wait)
 		keyboard.press_and_release("backspace")
-
 
 def click_camera_button():
 	if not able_to_run():
@@ -205,33 +204,8 @@ def send_zone_message(zone):
 	winsound.Beep(600, 200)
 	pyperclip.copy(switch.get(zone))
 
-"""
-def send_zone_message(zone):
-	if zone == "A":
-		pyperclip.copy("Zone A (Stepford Zone, along with Willowfield and Whitefield branches) is now under manual signalling control.")
-	elif zone == "B":
-		pyperclip.copy("Zone B (St. Helens Bridge, Coxly and Beaulieu Park corridor) is now under manual signalling control.")
-	elif zone == "C":
-		pyperclip.copy("Zone C (Stepford Airport Area) is now under manual siganlling control.")
-	elif zone == "D":
-		pyperclip.copy("Zone D (Morganstown, Leighton line and Leighton West Branch) is now under manual signalling control.")
-	elif zone == "E":
-		pyperclip.copy("Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.")
-	elif zone == "F":
-		pyperclip.copy("Zone F (General Benton area, including Waterline) is now under manual signalling control.")
-	elif zone == "G":
-		pyperclip.copy("Zone G (Esterfield line) is now under manual signalling control.")
-"""
-	
-
-# old_print=print
-# def print(*args):
-# 	old_print(math.trunc(time.time() - starttime))
-# 	old_print(*args)
-
 def test():
 	if debug: print("Number recognized")
-
 
 keyboard.add_hotkey(2, click_signal, args=["1"]) # 1
 keyboard.add_hotkey(3, click_signal, args=["2"]) # 2
