@@ -191,6 +191,22 @@ def scan_for_dialog(type):
 		if debug: print("None")
 
 def send_zone_message(zone):
+	if not able_to_run(): return
+	switch = {
+		'A': "Zone A (Stepford Zone, along with Willowfield and Whitefield branches) is now under manual signalling control.",
+		'B': "Zone B (St. Helens Bridge, Coxly and Beaulieu Park corridor) is now under manual signalling control.",
+		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
+		'D': "Zone D (Morganstown, Leighton line and Leighton West Branch) is now under manual signalling control.",
+		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
+		'F': "Zone F (General Benton area, including Waterline) is now under manual signalling control.",
+		'G': "Zone G (Esterfield line) is now under manual signalling control."
+	}
+
+	winsound.Beep(600, 200)
+	pyperclip.copy(switch.get(zone))
+
+"""
+def send_zone_message(zone):
 	if zone == "A":
 		pyperclip.copy("Zone A (Stepford Zone, along with Willowfield and Whitefield branches) is now under manual signalling control.")
 	elif zone == "B":
@@ -205,8 +221,8 @@ def send_zone_message(zone):
 		pyperclip.copy("Zone F (General Benton area, including Waterline) is now under manual signalling control.")
 	elif zone == "G":
 		pyperclip.copy("Zone G (Esterfield line) is now under manual signalling control.")
+"""
 	
-	winsound.Beep(600, 200)
 
 # old_print=print
 # def print(*args):
