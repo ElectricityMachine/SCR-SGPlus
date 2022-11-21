@@ -1,5 +1,5 @@
 # ElectricityMachine
-# Version: 0.2.7
+# Version: 0.2.8
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
@@ -17,11 +17,12 @@ import PIL.ImageGrab
 import pygetwindow
 import requests
 import colorama
+import pyperclip
 
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.7"
+version = "v0.2.8"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
@@ -79,7 +80,6 @@ def click_signal(sig):
 		keyboard.press_and_release(sig)
 		time.sleep(backspace_wait)
 		keyboard.press_and_release("backspace")
-
 
 def click_camera_button():
 	if not able_to_run():
@@ -189,14 +189,23 @@ def scan_for_dialog(type):
 	elif type == "station":
 		if debug: print("None")
 
-# old_print=print
-# def print(*args):
-# 	old_print(math.trunc(time.time() - starttime))
-# 	old_print(*args)
+def send_zone_message(zone):
+	if not able_to_run(): return
+	switch = {
+		'A': "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
+		'B': "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
+		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
+		'D': "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
+		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
+		'F': "Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control.",
+		'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
+	}
+
+	winsound.Beep(600, 200)
+	pyperclip.copy(switch.get(zone))
 
 def test():
 	if debug: print("Number recognized")
-
 
 keyboard.add_hotkey(2, click_signal, args=["1"]) # 1
 keyboard.add_hotkey(3, click_signal, args=["2"]) # 2
@@ -204,6 +213,13 @@ keyboard.add_hotkey(4, click_signal, args=["3"]) # 3
 keyboard.add_hotkey(46, click_camera_button) # C
 keyboard.add_hotkey(59, toggle_disable) # F1
 keyboard.add_hotkey(82, test) # Num 0
+keyboard.add_hotkey(79, send_zone_message, args=["A"]) # Num 1
+keyboard.add_hotkey(80, send_zone_message, args=["B"]) # Num 2
+keyboard.add_hotkey(81, send_zone_message, args=["C"]) # Num 3
+keyboard.add_hotkey(75, send_zone_message, args=["D"]) # Num 4
+keyboard.add_hotkey(76, send_zone_message, args=["E"]) # Num 5
+keyboard.add_hotkey(77, send_zone_message, args=["F"]) # Num 6
+keyboard.add_hotkey(71, send_zone_message, args=["G"]) # Num 7
 
 # 0: 82
 # 1: 79
