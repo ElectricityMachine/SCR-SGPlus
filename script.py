@@ -1,5 +1,5 @@
 # ElectricityMachine
-# Version: 0.2.8
+# Version: 0.2.9
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
@@ -23,7 +23,7 @@ import pyperclip
 starttime = time.time()
 colorama.init() # Needed to work on Windows devices, see colorama docs
 
-version = "v0.2.8"
+version = "v0.2.9"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
