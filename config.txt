@@ -1,0 +1,26 @@
+# General hotkeys
+toggle_sgplus="F1"
+
+# Signalling hotkeys
+proceed_signal="1"
+warning_signal="2"
+danger_signal="3"
+camera_view="c"
+
+# Zone message hotkeys
+zone_message_A_hotkey="Num 1"
+zone_message_B_hotkey="Num 2"
+zone_message_C_hotkey="Num 3"
+zone_message_D_hotkey="Num 4"
+zone_message_E_hotkey="Num 5"
+zone_message_F_hotkey="Num 6"
+zone_message_G_hotkey="Num 7"
+
+# Zone messages
+zone_message_A="Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control."
+zone_message_B="Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control."
+zone_message_C="Zone C (Stepford Airport Area) is now under manual siganlling control."
+zone_message_D="Zone D (Morganstown to Leighton West) is now under manual signalling control."
+zone_message_E="Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control."
+zone_message_F="Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control."
+zone_message_G="Zone G (James St. to Esterfield) is now under manual signalling control."

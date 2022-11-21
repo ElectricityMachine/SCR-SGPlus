@@ -9,6 +9,7 @@ import time
 import math
 import autoit
 import keyboard
+from torch import equal
 import win32api
 import win32gui
 import winsound
@@ -41,6 +42,21 @@ color_vals ={
 disable = False
 running = False
 
+EXPECTED_CONFIGS = ["toggle_sgplus", "proceed_signal", "warning_signal", "danger_signal", 
+	"zone_message_A_hotkey", "zone_message_B_hotkey", "zone_message_C_hotkey", "zone_message_D_hotkey",
+	"zone_message_E_hotkey", "zone_message_F_hotkey", "zone_message_G_hotkey", "zone_message_A", 
+	"zone_message_B", "zone_message_C", "zone_message_D", "zone_message_E", "zone_message_F", "zone_message_G"]
+
+ZONE_COPY_MESSAGES = {
+		'A': "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
+		'B': "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
+		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
+		'D': "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
+		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
+		'F': "Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control.",
+		'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
+	}
+
 def update_check():
 	if not check_for_update: return
 	URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
@@ -61,7 +77,7 @@ def able_to_run():
 	elif running:
 		if debug: print("Unable to run: Already running")
 		return False
-	elif win32gui.GetWindowText(win32gui.GetForegroundWindow()) != "Roblox":
+	elif win32gui.GetWindowText(win32gui.GetForegroundWindow()) != "Roblox": #TODO: REPLACE THIS BEFORE PUSH
 		if debug: print("Unable to run: Not ROBLOX")
 		return False
 	else:
@@ -119,7 +135,6 @@ def click_camera_button():
 			x, y = output
 			time.sleep(0.016)
 			autoit.mouse_click("left", x, y, 1, 2)
-
 
 def toggle_disable():
 	global disable
@@ -191,35 +206,74 @@ def scan_for_dialog(type):
 
 def send_zone_message(zone):
 	if not able_to_run(): return
-	switch = {
-		'A': "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
-		'B': "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
-		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
-		'D': "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
-		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
-		'F': "Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control.",
-		'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
-	}
-
+	
 	winsound.Beep(600, 200)
-	pyperclip.copy(switch.get(zone))
+	pyperclip.copy(ZONE_COPY_MESSAGES.get(zone))
+
+def initConfig():
+	try:
+		with open("config.txt") as f:
+			configs = f.readlines()
+			configOptions = {}
+			for line in configs:
+				if len(line) > 0 and not(line.startswith("#")):  # if line is not empty and is not a comment
+					equalsPos = line.find("=")
+					configOptions[line[:equalsPos]] = line[equalsPos + 2:-2]  # 2's are used to exclude quotes
+					try:
+						EXPECTED_CONFIGS.remove(line[:equalsPos])
+					except ValueError: 
+						pass
+			
+			if len(EXPECTED_CONFIGS) > 0:
+				print(colorama.Fore.YELLOW + "WARNING: Expected configs: " + str(EXPECTED_CONFIGS) + " not found! Using default configs." + colorama.Fore.WHITE)
+				raise Exception  # break out of try
+
+			keyboard.add_hotkey(configOptions["proceed_signal"], click_signal, args=["1"]) # 1
+			keyboard.add_hotkey(configOptions["warning_signal"], click_signal, args=["2"]) # 2
+			keyboard.add_hotkey(configOptions["danger_signal"], click_signal, args=["3"]) # 3
+			keyboard.add_hotkey(configOptions["camera_view"], click_camera_button) # C
+			keyboard.add_hotkey(configOptions["toggle_sgplus"], toggle_disable) # F1
+			keyboard.add_hotkey(82, test) # Num 0
+			keyboard.add_hotkey(configOptions["zone_message_A_hotkey"], send_zone_message, args=["A"]) # Num 1
+			keyboard.add_hotkey(configOptions["zone_message_B_hotkey"], send_zone_message, args=["B"]) # Num 2
+			keyboard.add_hotkey(configOptions["zone_message_C_hotkey"], send_zone_message, args=["C"]) # Num 3
+			keyboard.add_hotkey(configOptions["zone_message_D_hotkey"], send_zone_message, args=["D"]) # Num 4
+			keyboard.add_hotkey(configOptions["zone_message_E_hotkey"], send_zone_message, args=["E"]) # Num 5
+			keyboard.add_hotkey(configOptions["zone_message_F_hotkey"], send_zone_message, args=["F"]) # Num 6
+			keyboard.add_hotkey(configOptions["zone_message_G_hotkey"], send_zone_message, args=["G"]) # Num 7
+
+			ZONE_COPY_MESSAGES["A"] = configOptions["zone_message_A"]
+			ZONE_COPY_MESSAGES["B"] = configOptions["zone_message_B"]
+			ZONE_COPY_MESSAGES["C"] = configOptions["zone_message_C"]
+			ZONE_COPY_MESSAGES["D"] = configOptions["zone_message_D"]
+			ZONE_COPY_MESSAGES["E"] = configOptions["zone_message_E"]
+			ZONE_COPY_MESSAGES["F"] = configOptions["zone_message_F"]
+			ZONE_COPY_MESSAGES["G"] = configOptions["zone_message_G"]
+			return
+	except FileNotFoundError:
+		print(colorama.Fore.YELLOW + "WARNING: No config file found! Using default configs." + colorama.Fore.WHITE)
+	except Exception:
+		pass
+
+	keyboard.add_hotkey(2, click_signal, args=["1"]) # 1
+	keyboard.add_hotkey(3, click_signal, args=["2"]) # 2
+	keyboard.add_hotkey(4, click_signal, args=["3"]) # 3
+	keyboard.add_hotkey(46, click_camera_button) # C
+	keyboard.add_hotkey(59, toggle_disable) # F1
+	keyboard.add_hotkey(82, test) # Num 0
+	keyboard.add_hotkey(79, send_zone_message, args=["A"]) # Num 1
+	keyboard.add_hotkey(80, send_zone_message, args=["B"]) # Num 2
+	keyboard.add_hotkey(81, send_zone_message, args=["C"]) # Num 3
+	keyboard.add_hotkey(75, send_zone_message, args=["D"]) # Num 4
+	keyboard.add_hotkey(76, send_zone_message, args=["E"]) # Num 5
+	keyboard.add_hotkey(77, send_zone_message, args=["F"]) # Num 6
+	keyboard.add_hotkey(71, send_zone_message, args=["G"]) # Num 7
 
 def test():
 	if debug: print("Number recognized")
 
-keyboard.add_hotkey(2, click_signal, args=["1"]) # 1
-keyboard.add_hotkey(3, click_signal, args=["2"]) # 2
-keyboard.add_hotkey(4, click_signal, args=["3"]) # 3
-keyboard.add_hotkey(46, click_camera_button) # C
-keyboard.add_hotkey(59, toggle_disable) # F1
-keyboard.add_hotkey(82, test) # Num 0
-keyboard.add_hotkey(79, send_zone_message, args=["A"]) # Num 1
-keyboard.add_hotkey(80, send_zone_message, args=["B"]) # Num 2
-keyboard.add_hotkey(81, send_zone_message, args=["C"]) # Num 3
-keyboard.add_hotkey(75, send_zone_message, args=["D"]) # Num 4
-keyboard.add_hotkey(76, send_zone_message, args=["E"]) # Num 5
-keyboard.add_hotkey(77, send_zone_message, args=["F"]) # Num 6
-keyboard.add_hotkey(71, send_zone_message, args=["G"]) # Num 7
+
+initConfig()
 
 # 0: 82
 # 1: 79
