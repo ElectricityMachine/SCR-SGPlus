@@ -184,7 +184,7 @@ def scan_for_dialog(type):
 		if flag:
 			return True
 		else:
-			if debug: print("IMAGE DETECTION: Dialog not found") # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing 
+			if debug: print("IMAGE DETECTION: Dialog not found") # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing the problem
 			return False
 	elif type == "station":
 		if debug: print("None")
@@ -194,10 +194,10 @@ def send_zone_message(zone):
 	switch = {
 		'A': "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
 		'B': "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
-		'C': "Zone C (Stepford Airport Area) is now under manual siganlling control.",
+		'C': "Zone C (Stepford Airport Area) is now under manual signalling control.",
 		'D': "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
 		'E': "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
-		'F': "Zone F (Benton area + Waterline up to not including Airport West and Morganstown) is now under manual signalling control.",
+		'F': "Zone F (Benton area + Waterline up to but not including Airport West and Morganstown) is now under manual signalling control.",
 		'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
 	}
 
