@@ -12,7 +12,7 @@ Reproducing this issue has been tricky, it seems to work some times but not othe
 
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect or open a camera view with only one button press.
+SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, announce your signalling presence, or open a camera view with only one button press.
 
 ### Will this get me demoted? Am I safe to use this?
 **There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
@@ -21,13 +21,13 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
 - Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
 - Press F1 to enable or disable the script. You only need to do this if you are chatting or typing things to prevent false activations.
+- Use numpad 1-7 to copy zone opening messages to your clipboard
 
 ### Features
-- Only one button press is needed to change a signal aspect
+- Only one button press is needed to change a signal aspect or copy zone opening messages to your clipboard
 - Decreases setup and train clearing time significantly
 - Allows the signaller to focus on more important things than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
-- Use numpad 1-7 to copy zone opening messages to your clipboard (1 for A, 2 for B, etc.)
 
 ### Planned features:
 - Rewrite camera code to use the aspect code to detect the image
@@ -35,7 +35,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - TRTS Audio cue 
 
 ### Known issues:
-- Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
+- Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make it fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
 
 ### Controls:
 
@@ -47,6 +47,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |2|Change currently hovered signal to Caution|
 |3|Change currently hovered signal to Proceed|
 |C|Enter camera mode of currently hovered signal. If you are already in camera mode, it will exit camera mode|
+|Numpad 1-7|Copy the opening message for each zones (1 for zone A, 2 for zone B, etc.)|
 ---
 
 ### **Installation**
@@ -67,4 +68,4 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 By using this script, you MUST adhere to the license terms in the LICENSE file.
 
 ### Contact information
-If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt that way to avoid scrapers and bots.
+If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt this way to avoid scrapers and bots.
