@@ -6,7 +6,7 @@ Reproducing this issue has been tricky, it seems to work some times but not othe
 
 <h1 align="center">
    
-   ![macro-beechley_1_2](https://user-images.githubusercontent.com/47489506/165611305-da7b72a5-1492-4db0-b37a-3ce81f1aad22.gif)
+   ![SGPlus](https://i.imgur.com/jcOlFuq.gif)
 
 </h1>
 
@@ -28,15 +28,16 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Allows the signaller to focus on more important things than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
 - Use numpad 1-7 to copy zone opening messages to your clipboard (1 for A, 2 for B, etc.)
-
+- Overlay that shows whether SG+ is enabled or disabled
+- Properties window which allows you to fine tune the tool to your liking including custom keybinds.
 ### Planned features:
 - Rewrite camera code to use the aspect code to detect the image
 - Implement a visual indicator
 - TRTS Audio cue 
+- Allowing custom keybinds for signal and camera controls, only the toggling keybind is customizable.
 
 ### Known issues:
-- Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
-
+- Camera button for platforms might be unreliable. This may require some additional attention.
 ### Controls:
 
 ---
@@ -49,9 +50,8 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |C|Enter camera mode of currently hovered signal. If you are already in camera mode, it will exit camera mode|
 ---
 
-### **Installation**
+### **Installation by source**
 
-## Windows
 1. Download and install the latest Python3 installer from [Python Downloads Page](https://www.python.org/downloads/)
    - IMPORTANT: Make sure to check the box during installation which adds Python to PATH. Labeled something like **Add Python 3.X to PATH**
 2. Download the latest release in the [Releases section of this repo](https://github.com/ElectricityMachine/SCR-SGPlus/releases/). Click on "Source Code (zip)"
@@ -62,6 +62,10 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 
 6. In that CMD window, run ``pip install -r requirements.txt``. This will download all the requirements for the script to function.
 7. After the installation has completed, run the ``start.bat`` batch file to start the script. A console window will appear, a beep will sound, and the macro is now active.
+
+### **Installation by executable**
+
+Download the archive listed in the releases tab on the right side and extract it to a folder. Run the executable contained within.
 
 ### License
 By using this script, you MUST adhere to the license terms in the LICENSE file.
