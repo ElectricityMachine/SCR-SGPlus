@@ -1,11 +1,10 @@
 # ElectricityMachine
+# GUI by xDistinctx
 # Version: 0.4.0
 # Major changes: Add toggle rollback feature
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
-import inspect
-
 import pyautogui
 from pyautogui import *
 import time
@@ -19,7 +18,6 @@ import PIL
 import PIL.ImageGrab
 import pygetwindow
 import requests
-import colorama
 import pyperclip
 import pyscreeze
 import sys
@@ -27,7 +25,6 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import ctypes
-import colorama
 import os
 import json
 import webbrowser
@@ -36,7 +33,6 @@ import traceback
 import tempfile
 disabled = None
 starttime = time.time()
-colorama.init()  # Needed to work on Windows devices, see colorama docs
 
 # TODO: Add check for pixels in signal dialog detection that figure out percentage of pixels that are of the color, and if they don't match certain tolerances (false positive), don't execute. This will solve a potential issue if backspace to leave desk ever gets fixed
 
@@ -80,14 +76,23 @@ def able_to_run():
     if disabled:
         if debug:
             print("Unable to run: Disabled")
+            logfile = open("log.txt", "a")
+            logfile.write("Unable to run: Disabled\n")
+            logfile.close()
         return False
     elif running:
         if debug:
             print("Unable to run: Already running")
+            logfile = open("log.txt", "a")
+            logfile.write("Unable to run: Already running\n")
+            logfile.close()
         return False
     elif win32gui.GetWindowText(win32gui.GetForegroundWindow()) != "Roblox":
         if debug:
             print("Unable to run: Not ROBLOX")
+            logfile = open("log.txt", "a")
+            logfile.write("Unable to run: Not ROBLOX\n")
+            logfile.close()
         return False
     else:
         return True
@@ -218,10 +223,16 @@ def scan_for_dialog(type):
             if debug:
                 # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
                 print("IMAGE DETECTION: Dialog not found")
+                logfile = open("log.txt", "a")
+                logfile.write("IMAGE DETECTION: Dialog not found\n")
+                logfile.close()
             return False
     elif type == "station":
         if debug:
             print("None")
+            logfile = open("log.txt", "a")
+            logfile.write("None\n")
+            logfile.close()
     elif type == "menu":
         window = win32gui.GetForegroundWindow()
         rect = win32gui.GetClientRect(window)
@@ -271,9 +282,16 @@ def scan_for_dialog(type):
             if debug:
                 # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
                 print("IMAGE DETECTION: Menu's dialog not found")
+                logfile = open("log.txt", "a")
+                logfile.write("IMAGE DETECTION: Menu's dialog not found\n")
+                logfile.close()
             return False
     elif type == "exitcamera":
-        print("Exitcamera run")
+        if debug:
+            print("Exitcamera run")
+            logfile = open("log.txt", "a")
+            logfile.write("Exitcamera run\n")
+            logfile.close()
         window = win32gui.GetForegroundWindow()
         rect = win32gui.GetClientRect(window)
 
@@ -319,6 +337,9 @@ def scan_for_dialog(type):
             if debug:
                 # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
                 print("IMAGE DETECTION: Menu's dialog not found")
+                logfile = open("log.txt", "a")
+                logfile.write("IMAGE DETECTION: Menu's dialog not found\n")
+                logfile.close()
 
 
 def move_and_click_rollback():
