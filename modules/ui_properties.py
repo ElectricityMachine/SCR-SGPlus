@@ -193,7 +193,7 @@ class Ui_PropertiesWindow(object):
         self.label.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p align=\"center\">SG+ Properties</p></body></html>", None))
         self.label_2.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p align=\"center\">Click a box to change it's setting.</p></body></html>", None))
         self.updateButton.setText(QCoreApplication.translate("PropertiesWindow", u"Apply", None))
-        self.skipButton.setText(QCoreApplication.translate("PropertiesWindow", u"Exit", None))
+        self.skipButton.setText(QCoreApplication.translate("PropertiesWindow", u"Close", None))
         self.actionDelay.setPlainText("")
         self.label_3.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p align=\"justify\"><span style=\" font-size:8pt;\">Action Delay</span></p></body></html>", None))
         self.label_4.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p align=\"justify\"><span style=\" font-size:8pt;\">Toggle Hotkey</span></p></body></html>", None))
