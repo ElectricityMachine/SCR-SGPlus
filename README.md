@@ -1,7 +1,3 @@
-<h1><b> ATTENTION: A new SCR update has broken the functionality of the script. If you notice a "Desk Exit" dialog appear when you change a signal, please try a different server or don't use the script. </b></h1>
-
-Reproducing this issue has been tricky, it seems to work some times but not other times. If you are affected by the issue, remember it is NOT caused by me, but rather an SCR/ROBLOX update.
-
 <h1 align="center">SCR: SG+</h1>
 
 <h1 align="center">
@@ -25,17 +21,18 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ### Features
 - Only one button press is needed to change a signal aspect
 - Decreases setup and train clearing time significantly
-- Allows the signaller to focus on more important things than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
+- Toggle rollback on or off
+- Audible warning if you try to chat or run commands with the macro enabled
 
 ### Planned features:
-- Rewrite camera code to use the aspect code to detect the image
-- Implement a visual indicator
-- Premade chat messages on numpad
 - TRTS Audio cue 
+- Station cameras
+- Auto terminus station setup
 
-### Known issues:
-- Sometimes, pressing C to enter the camera view of a signal does not work correctly. This is due to changes in 1.9 with the signalling interface and requires a rewrite to make fully functional. Because this is a low-priority feature of this script, especially because the cameras have rendering bugs in the current version, it will not be fixed for a while until the cameras in-game are fixed.
+### Limitations:
+- Windows only
+- Primary monitor only
 
 ### Controls:
 
@@ -46,7 +43,8 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |1|Change currently hovered signal to Danger|
 |2|Change currently hovered signal to Caution|
 |3|Change currently hovered signal to Proceed|
-|C|Enter camera mode of currently hovered signal. If you are already in camera mode, it will exit camera mode|
+|C|Enter camera mode of the currently hovered signal. If you are already in camera mode, it will exit camera mode|
+|R|Toggle rollback of the currently hovered signal
 ---
 
 ### **Installation**

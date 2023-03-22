@@ -28,7 +28,7 @@ version = "v0.3.0"
 dialog_wait = 0.085 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
 menu_wait = 0.04 # Length of time to wait for side menu (view camera, rollback, info) to show up
 debug = False # If true, will enable debug prints if they're specified
-check_for_update = False
+check_for_update = True
 
 color_dialog_buttons = {
     (0, 201, 0),  # Lit Green
@@ -42,7 +42,6 @@ color_dialog_buttons = {
 color_more = (92, 89, 89)  # Color of gray button w/ 3 dots
 color_menu = (194, 186, 189)  # Side menu main color
 color_camera_exit = (255, 255, 255)  # White "X" on the close button in camera view
-color_dialog_text = (159, 153, 153)
 color_dialog_white = (227, 218, 218)  # White elements in the signal dialog
 color_viewcamera = (147, 0, 207)  # Purple "View Camera" button
 
@@ -158,10 +157,10 @@ def click_camera_button():
 def toggle_disable():
     global disabled
     if disabled:
-        disabled = not disabled
+        disabled = False
         winsound.Beep(500, 100)
     else:
-        disabled = not disabled
+        disabled = True
         winsound.Beep(400, 100)
 
 
@@ -177,7 +176,7 @@ def scan_for_dialog(type):
     y = bbox[1]
     w = bbox[2]
     h = bbox[3]
-    if type == "signal":
+    if type == "signal": # Gray signal dialog
         # Wait for a set time before checking if the dialog actually pops up. This ensures there should be no time where the script screengrabs and the dialog isn't open after clicking on a signal.
         time.sleep(dialog_wait)
 
@@ -219,7 +218,7 @@ def scan_for_dialog(type):
             return True
         else:
             return False
-    elif type == "exitcamera":
+    elif type == "exitcamera": # Red "X" button at the top of screen when in a camera view
         camera_controls_width = 283
         camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
 
@@ -247,7 +246,7 @@ def scan_for_dialog(type):
                 break
         if flag:
             return True
-    elif type == "uncontrolled":
+    elif type == "uncontrolled": # Gray signal dialog that isn't controlled by us
         dialogbox_height = math.ceil(h * 0.125)
         dialogbox_width = math.ceil(dialogbox_height * 2)
         dialogbox_x = mousex - dialogbox_width / 2
@@ -265,7 +264,6 @@ def scan_for_dialog(type):
         upperw, upperh = upper.size
         uppershelf = upper.crop((0, upperh * 0.1, upperw / 2, upperh * 0.1 + 2))
         imagesToProcess = [lowershelf, uppershelf]
-        uppershelf.save("debug.png")
         white_pixels = 0
         flag = False
         for image in imagesToProcess:
@@ -285,7 +283,7 @@ def scan_for_dialog(type):
             return True
         else:
             return False
-    elif type == "viewcamera":
+    elif type == "viewcamera": # Purple "View Camera" button in sidemenu
         zone_screen_height = math.ceil(0.97735 * h)
         zone_screen_width = math.ceil(zone_screen_height * 1.34105)
         zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
