@@ -8,7 +8,7 @@
 
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect or open a camera view with only one button press.
+SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, announce your signalling presence, or open a camera view with only one button press.
 
 ### Will this get me demoted? Am I safe to use this?
 **There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
@@ -17,10 +17,12 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
 - Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
 - Press F1 to enable or disable the script. You only need to do this if you are chatting or typing things to prevent false activations.
+- Use numpad 1-7 to copy zone opening messages to your clipboard
 
 ### Features
-- Only one button press is needed to change a signal aspect
+- Only one button press is needed to change a signal aspect or copy zone opening messages to your clipboard
 - Decreases setup and train clearing time significantly
+- Allows the signaller to focus on more important things rather than just clicking to change aspects
 - Quickly get in and out of a camera view (signals only for now)
 - Toggle rollback on or off
 - Audible warning if you try to chat or run commands with the macro enabled
@@ -45,6 +47,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |3|Change currently hovered signal to Proceed|
 |C|Enter camera mode of the currently hovered signal. If you are already in camera mode, it will exit camera mode|
 |R|Toggle rollback of the currently hovered signal
+|Numpad 1-7|Copy the opening message for each zone (1 for zone A, 2 for zone B, etc.)|
 ---
 
 ### **Installation**
@@ -65,4 +68,4 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 By using this script, you MUST adhere to the license terms in the LICENSE file.
 
 ### Contact information
-If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt that way to avoid scrapers and bots.
+If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt this way to avoid scrapers and bots.
