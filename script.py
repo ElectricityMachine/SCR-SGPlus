@@ -27,10 +27,10 @@ import pyautogui
 colorama.init()  # Needed to work on Windows devices, see colorama docs
 
 version = "v0.3.0"
-dialog_wait = 0.055 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
+dialog_wait = 0.085 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
 menu_wait = 0.04 # Length of time to wait for side menu (view camera, rollback, info) to show up
 debug = False # If true, will enable debug prints if they're specified
-check_for_update = True
+check_for_update = False
 
 color_dialog_buttons = {
     (0, 201, 0),  # Lit Green
@@ -103,7 +103,6 @@ def screen_grab(x, y, width, height):
 
 def mouse_click(waittime=0.01):
     mouse.press("left")
-    time.sleep(waittime)
     mouse.release("left")
 
 keycontroller = pynput.keyboard.Controller()
@@ -111,17 +110,25 @@ def press_and_release(key, waittime=0):
     keycontroller.tap(key)
     time.sleep(waittime)
 
+debounce = False
+
 def click_signal(sig):
     global running
+    global debounce
     if not able_to_run():
+        debounce = False
         return
-    t1 = time.perf_counter()
+    #debounce = True
+    #keyboard.press_and_release("backspace")
     mouse_click()
-    t2 = time.perf_counter()
-    time.sleep(0.021)
-    if scan_for_dialog("signal"):
+    mousex, mousey = mouse.get_position()
+    fps = 60
+    one_frame_time = round((1000 / fps) * 10 ** -3, 4)
+    #print(one_frame_time)
+    time.sleep(one_frame_time * 2)
+    if scan_for_dialog("signal", mousex, mousey):
+        time.sleep(one_frame_time * 3)
         keyboard.press_and_release(sig)
-        #time.sleep(0.1)
         keyboard.press_and_release("backspace")
 
 
@@ -180,12 +187,13 @@ def toggle_disable():
         winsound.Beep(400, 100)
 
 
-def scan_for_dialog(type):
+def scan_for_dialog(type, mousex=0, mousey=0):
     if not able_to_run():
         return
     global running
     #running = True
-    mousex, mousey = pyautogui.position()
+    if mousex is mousey and mousex == 0:
+        mousex, mousey = pyautogui.position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
@@ -200,7 +208,7 @@ def scan_for_dialog(type):
         dialogbox_x = mousex - dialogbox_width / 2
         dialogbox_y = mousey - dialogbox_height
 
-        time.sleep(dialog_wait)
+        #time.sleep(dialog_wait)
         capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
         w, h = capture.size
         capture.convert('RGB')
@@ -400,10 +408,6 @@ def enabled_warning():
         return
     if not disabled:
         winsound.Beep(640, 300)
-
-def on_press(key):
-    if key.char == '1':
-        click_signal('1')
 
 if __name__ == "__main__":
     keyboard.add_hotkey(2, click_signal, args=["1"])  # 1
