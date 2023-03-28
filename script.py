@@ -12,20 +12,22 @@ import winsound
 
 import autoit
 import colorama
-import keyboard
 import mss
 import PIL
 import PIL.Image
+import keyboard
 import pyautogui
 import pyperclip
+import pynput
 import requests
 import win32gui
+import mouse
 import pyautogui
 
 colorama.init()  # Needed to work on Windows devices, see colorama docs
 
 version = "v0.3.0"
-dialog_wait = 0.085 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
+dialog_wait = 0.055 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
 menu_wait = 0.04 # Length of time to wait for side menu (view camera, rollback, info) to show up
 debug = False # If true, will enable debug prints if they're specified
 check_for_update = True
@@ -99,13 +101,27 @@ def screen_grab(x, y, width, height):
         newimage = PIL.Image.frombytes('RGB', im.size, im.bgra, 'raw', 'BGRX')
         return newimage
 
+def mouse_click(waittime=0.01):
+    mouse.press("left")
+    time.sleep(waittime)
+    mouse.release("left")
+
+keycontroller = pynput.keyboard.Controller()
+def press_and_release(key, waittime=0):
+    keycontroller.tap(key)
+    time.sleep(waittime)
 
 def click_signal(sig):
+    global running
     if not able_to_run():
         return
-    autoit.mouse_click()
+    t1 = time.perf_counter()
+    mouse_click()
+    t2 = time.perf_counter()
+    time.sleep(0.021)
     if scan_for_dialog("signal"):
         keyboard.press_and_release(sig)
+        #time.sleep(0.1)
         keyboard.press_and_release("backspace")
 
 
@@ -167,6 +183,8 @@ def toggle_disable():
 def scan_for_dialog(type):
     if not able_to_run():
         return
+    global running
+    #running = True
     mousex, mousey = pyautogui.position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
@@ -177,14 +195,12 @@ def scan_for_dialog(type):
     w = bbox[2]
     h = bbox[3]
     if type == "signal": # Gray signal dialog
-        # Wait for a set time before checking if the dialog actually pops up. This ensures there should be no time where the script screengrabs and the dialog isn't open after clicking on a signal.
-        time.sleep(dialog_wait)
-
         dialogbox_height = math.ceil(h * 0.125)
         dialogbox_width = math.ceil(dialogbox_height * 2)
         dialogbox_x = mousex - dialogbox_width / 2
         dialogbox_y = mousey - dialogbox_height
 
+        time.sleep(dialog_wait)
         capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
         w, h = capture.size
         capture.convert('RGB')
@@ -217,6 +233,7 @@ def scan_for_dialog(type):
         if flag:
             return True
         else:
+            print("NOt")
             return False
     elif type == "exitcamera": # Red "X" button at the top of screen when in a camera view
         camera_controls_width = 283
@@ -384,26 +401,30 @@ def enabled_warning():
     if not disabled:
         winsound.Beep(640, 300)
 
+def on_press(key):
+    if key.char == '1':
+        click_signal('1')
 
-keyboard.add_hotkey(2, click_signal, args=["1"])  # 1
-keyboard.add_hotkey(3, click_signal, args=["2"])  # 2
-keyboard.add_hotkey(4, click_signal, args=["3"])  # 3
-keyboard.add_hotkey(46, click_camera_button)  # C
-keyboard.add_hotkey(59, toggle_disable)  # F1
-keyboard.add_hotkey('R', move_and_click_rollback)  # R
-keyboard.add_hotkey('/', enabled_warning)  # / warning when opening chat while enabled
-keyboard.add_hotkey('`', enabled_warning)  # Command bar
-keyboard.add_hotkey('\'', enabled_warning)  # Command bar
-keyboard.add_hotkey(79, send_zone_message, args=["A"])  # Num 1
-keyboard.add_hotkey(80, send_zone_message, args=["B"])  # Num 2
-keyboard.add_hotkey(81, send_zone_message, args=["C"])  # Num 3
-keyboard.add_hotkey(75, send_zone_message, args=["D"])  # Num 4
-keyboard.add_hotkey(76, send_zone_message, args=["E"])  # Num 5
-keyboard.add_hotkey(77, send_zone_message, args=["F"])  # Num 6
-keyboard.add_hotkey(71, send_zone_message, args=["G"])  # Num 7
+if __name__ == "__main__":
+    keyboard.add_hotkey(2, click_signal, args=["1"])  # 1
+    keyboard.add_hotkey(3, click_signal, args=["2"])  # 2
+    keyboard.add_hotkey(4, click_signal, args=["3"])  # 3
+    # keyboard.add_hotkey(46, click_camera_button)  # C
+    # keyboard.add_hotkey(59, toggle_disable)  # F1
+    # keyboard.add_hotkey('R', move_and_click_rollback)  # R
+    # keyboard.add_hotkey('/', enabled_warning)  # / warning when opening chat while enabled
+    # keyboard.add_hotkey('`', enabled_warning)  # Command bar
+    # keyboard.add_hotkey('\'', enabled_warning)  # Command bar
+    # keyboard.add_hotkey(79, send_zone_message, args=["A"])  # Num 1
+    # keyboard.add_hotkey(80, send_zone_message, args=["B"])  # Num 2
+    # keyboard.add_hotkey(81, send_zone_message, args=["C"])  # Num 3
+    # keyboard.add_hotkey(75, send_zone_message, args=["D"])  # Num 4
+    # keyboard.add_hotkey(76, send_zone_message, args=["E"])  # Num 5
+    # keyboard.add_hotkey(77, send_zone_message, args=["F"])  # Num 6
+    # keyboard.add_hotkey(71, send_zone_message, args=["G"])  # Num 7
 
-if update_check:
-    update_check()
-winsound.Beep(500, 200)
-print("SG+ Successfully Initialized")
-keyboard.wait()
+    if update_check:
+        update_check()
+    winsound.Beep(500, 200)
+    print("SG+ Successfully Initialized")
+    keyboard.wait()
