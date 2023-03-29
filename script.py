@@ -1,5 +1,5 @@
 # ElectricityMachine
-# Version: 0.3.0
+# Version: 0.3.1
 # Major changes: Add toggle rollback, improved reliability, major speed improvements, chat warning
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
@@ -12,25 +12,23 @@ import winsound
 
 import autoit
 import colorama
-import mss
-import PIL
-import PIL.Image
-import keyboard
-import pyautogui
+from PIL.Image import frombytes
+from keyboard import add_hotkey, press_and_release, wait as keyboard_wait
 import pyperclip
-import pynput
-import requests
+from requests import get as requests_get
 import win32gui
 import mouse
-import pyautogui
+from mss import mss
+from time import perf_counter
 
 colorama.init()  # Needed to work on Windows devices, see colorama docs
 
-version = "v0.3.0"
-dialog_wait = 0.085 # Length of time to wait for gray signal dialog to show up. You can reduce this if your system can hold a steady framerate, for example, 0.055. This will make the script more responsive to your inputs
-menu_wait = 0.04 # Length of time to wait for side menu (view camera, rollback, info) to show up
+version = "v0.3.1"
+fps = 60 # Set your average FPS here
+ping = 100 # Set your average ping here
 debug = False # If true, will enable debug prints if they're specified
 check_for_update = False
+
 
 color_dialog_buttons = {
     (0, 201, 0),  # Lit Green
@@ -48,8 +46,8 @@ color_dialog_white = (227, 218, 218)  # White elements in the signal dialog
 color_viewcamera = (147, 0, 207)  # Purple "View Camera" button
 
 disabled = False
-running = False # Debounce
 signal_mouse_coords = None  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
+one_frame_time = round((1000 / fps) * 10 ** -3, 4) # Calculate time for 1 frame and round to 4 decimal places
 
 
 def update_check():
@@ -57,7 +55,7 @@ def update_check():
     if not check_for_update:
         return
     URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
-    r = requests.get(url=URL)
+    r = requests_get(url=URL)
     data = r.json()
     if version != data["tag_name"]:
         print(colorama.Fore.RED + "NOTICE: A new update is available for SG+!")
@@ -71,10 +69,6 @@ def able_to_run():
         if debug:
             print("Unable to run: Disabled")
         return False
-    elif running:
-        if debug:
-            print("Unable to run: Already running")
-        return False
     elif win32gui.GetWindowText(win32gui.GetForegroundWindow()) != "Roblox":
         if debug:
             print("Unable to run: Not ROBLOX")
@@ -83,12 +77,12 @@ def able_to_run():
         return True
 
 
-def color_approx_eq(color1, color2): # Checks if a color is equal to another color in 
+def color_approx_eq(color1, color2): # Checks if a color is equal to another color within a tolerance of 7
     return abs(color1[0] - color2[0]) <= 7 and abs(color1[1] - color2[1]) <= 7 and abs(color1[2] - color2[2]) <= 7
 
 
 def screen_grab(x, y, width, height):
-    with mss.mss() as sct:
+    with mss() as sct:
         # Calculate bbox
         left = x
         top = y
@@ -98,65 +92,118 @@ def screen_grab(x, y, width, height):
         # Grab the image
         im = sct.grab(bbox)
         # Convert to PIL image for compatibility
-        newimage = PIL.Image.frombytes('RGB', im.size, im.bgra, 'raw', 'BGRX')
+        newimage = frombytes('RGB', im.size, im.bgra, 'raw', 'BGRX')
         return newimage
 
-def mouse_click(waittime=0.01):
+def mouse_click():
     mouse.press("left")
     mouse.release("left")
 
-keycontroller = pynput.keyboard.Controller()
-def press_and_release(key, waittime=0):
-    keycontroller.tap(key)
-    time.sleep(waittime)
+def sleep(frames, minwait=0):
+    if minwait != 0:
+        print(max((frames * one_frame_time), minwait))
+        time.sleep(max((frames * one_frame_time), minwait))
+    else:
+        time.sleep(frames * one_frame_time)
 
-debounce = False
 
 def click_signal(sig):
-    global running
-    global debounce
     if not able_to_run():
-        debounce = False
         return
-    #debounce = True
-    #keyboard.press_and_release("backspace")
+    #t1 = perf_counter()
+    # Inputs to the same signal are throttled such that you cannot change an aspect while the server is still processing your last input
+    # Inputs to other signals don't seem to be throttled
+    coord = mouse.get_position()
     mouse_click()
+    time.sleep(one_frame_time * 3)
+    result = scan_for_dialog("signal", coord[0], coord[1])
+    if result:
+        time.sleep(one_frame_time * 2) # Wait a few frames to ensure the dialog is on screen and the game will process our inputs
+        press_and_release(sig)
+        time.sleep(ping/4_000) # Ensure that our inputs are processed properly before exiting out of the dialog
+        press_and_release("backspace")
+
+def auto_setup_test():
+    if not able_to_run(): 
+        return
+    present_pos_x, present_pos_y = mouse.get_position()
+    for j in range(2):
+        for i in range(1,16):
+            coord = mouse.get_position()
+            # Click signal red
+            print(i)
+            if i == 9 or i == 10:
+                # autoit.mouse_move(x=present_pos_x, y=present_pos_y + 57 * i, speed=0)
+                continue
+            if j == 0: click_signal('1')
+            elif j == 1: click_signal('3')
+            # Move 50 pixels down from current position
+            
+            if i != 15: autoit.mouse_move(x=present_pos_x, y=round(present_pos_y + 56.5 * i), speed=0)
+            #time.sleep(0.1)
+        autoit.mouse_move(x=present_pos_x, y=present_pos_y, speed=1)
+
+def click_rollback():
+    if not able_to_run():
+        return
     mousex, mousey = mouse.get_position()
-    fps = 60
-    one_frame_time = round((1000 / fps) * 10 ** -3, 4)
-    #print(one_frame_time)
-    time.sleep(one_frame_time * 2)
-    if scan_for_dialog("signal", mousex, mousey):
-        time.sleep(one_frame_time * 3)
-        keyboard.press_and_release(sig)
-        keyboard.press_and_release("backspace")
+    mouse_click()
+    sleep(2)
+    if scan_for_dialog("exitcamera"):  # Are we currently viewing a camera?
+        return
+    elif scan_for_dialog("signal", mousex, mousey):  # Is there a dialog on a signal we control?
+        press_and_release("enter")
+    else:  # No dialog found, no rollback toggle
+        return
+    window = win32gui.GetForegroundWindow()
+    rect = win32gui.GetClientRect(window)
+
+    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
+    #x = bbox[0]
+    #y = bbox[1]
+    w = bbox[2]
+    h = bbox[3]
+    zone_screen_height = math.ceil(0.97735 * h)
+    zone_screen_width = math.ceil(zone_screen_height * 1.34105)
+    zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
+
+    rollback_x = zone_screen_width * 0.89955 + zone_screen_x
+    rollback_y = 0.69518 * h
+    rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
+
+    autoit.mouse_move(x=rollback_position[0], y=rollback_position[1], speed=2)
+    mouse_click()
+    sleep(3) # Ensure mouseclick registers
+    press_and_release("backspace, backspace")
+    autoit.mouse_move(mousex, mousey, speed=1)
+    return
 
 
-def click_camera_button():
+## MAJOR TODO: Time certain functions in old script and port them to minwait
+
+def click_camera():
     if not able_to_run():
         return
 
     global signal_mouse_coords
     if scan_for_dialog("exitcamera"):  # Exit button found
-        keyboard.press_and_release("backspace")
-        keyboard.press_and_release("backspace") # Exit out of all menus, except dialog
+        press_and_release("backspace", "backspace")
         if signal_mouse_coords:
-            autoit.mouse_move(signal_mouse_coords.x, signal_mouse_coords.y, speed=1)
+            autoit.mouse_move(signal_mouse_coords[0], signal_mouse_coords[1], speed=1)
         return
-    autoit.mouse_click()
+    signal_mouse_coords = mouse.get_position()
+    mouse_click()
+    sleep(2, 0.02)
     if scan_for_dialog("signal"):  # Scan for controlled signal dialog
-        keyboard.press_and_release("enter")
-        camera_y = None
+        press_and_release("enter")
+        camera_y = 0.92133
     elif scan_for_dialog("uncontrolled"):
-        keyboard.press_and_release("enter")
-        if scan_for_dialog("viewcamera") == 0:
-            camera_y = 0.80137  # Uncontrolled Auto
-        else:
-            camera_y = 0.92133  # Uncontrolled Manual
+        press_and_release("enter")
+        sleep(2)
+        camera_y = 0.80137 if scan_for_dialog("viewcamera") == 0 else 0.92133
     else:
         return
 
-    signal_mouse_coords = pyautogui.position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
@@ -169,11 +216,12 @@ def click_camera_button():
     zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
 
     camera_x = zone_screen_width * 0.89414 + zone_screen_x
-    camera_y = (camera_y * h) if camera_y != None else 0.91445 * h
+    camera_y = camera_y * h
     camera_position = win32gui.ClientToScreen(window, (int(camera_x), int(camera_y)))
 
-    time.sleep(0.016)
-    autoit.mouse_click(x=camera_position[0], y=camera_position[1], speed=2)
+    sleep(1)
+    autoit.mouse_move(x=camera_position[0], y=camera_position[1], speed=2)
+    mouse_click()
     return
 
 
@@ -190,15 +238,13 @@ def toggle_disable():
 def scan_for_dialog(type, mousex=0, mousey=0):
     if not able_to_run():
         return
-    global running
-    #running = True
     if mousex is mousey and mousex == 0:
-        mousex, mousey = pyautogui.position()
+        mousex, mousey = mouse.get_position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
     bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-    x = bbox[0]
+    #x = bbox[0]
     y = bbox[1]
     w = bbox[2]
     h = bbox[3]
@@ -208,7 +254,6 @@ def scan_for_dialog(type, mousex=0, mousey=0):
         dialogbox_x = mousex - dialogbox_width / 2
         dialogbox_y = mousey - dialogbox_height
 
-        #time.sleep(dialog_wait)
         capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
         w, h = capture.size
         capture.convert('RGB')
@@ -220,29 +265,21 @@ def scan_for_dialog(type, mousex=0, mousey=0):
         uppershelf = upper.crop((0, upperh * 0.4, upperw, upperh * 0.4 + 2))
         imagesToProcess = [lowershelf, uppershelf]
 
-        white_pixels = 0
-        flag = False
-        for image in imagesToProcess:
-            for i in range(math.ceil(image.width / 1.6)): # Don't bother checking too much of the image
-                for val in color_dialog_buttons:
-                    if i == 0 or image.height == 0:
-                        break
-                    r, g, b = image.getpixel((i, image.height - 1))
-                    if color_approx_eq((r, g, b), (color_dialog_white)): # Count the number of white pixels to avoid false positives
-                        white_pixels += 1
-                    elif color_approx_eq((r, g, b), (val)): # Do we have a button color?
-                        if white_pixels / (image.width * image.height) >= 0.05:  # >5% of pixels are white
-                            flag = True
-                        break
-                if flag:
-                    break
-            if flag:
-                break
-        if flag:
-            return True
-        else:
-            print("NOt")
-            return False
+        def process_images():
+            white_pixels = 0
+            for image in imagesToProcess:
+                for i in range(math.ceil(image.width / 1.6)): # Don't bother checking too much of the image
+                    for val in color_dialog_buttons:
+                        if i == 0 or image.height == 0:
+                            break
+                        r, g, b = image.getpixel((i, image.height - 1))
+                        if color_approx_eq((r, g, b), (color_dialog_white)): # Count the number of white pixels to avoid false positives
+                            white_pixels += 1
+                        elif color_approx_eq((r, g, b), (val)): # Do we have a button color?
+                            if white_pixels / (image.width * image.height) >= 0.05:  # >5% of pixels are white
+                                return True
+            print("Nay")
+        return True if process_images() else False
     elif type == "exitcamera": # Red "X" button at the top of screen when in a camera view
         camera_controls_width = 283
         camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
@@ -309,6 +346,7 @@ def scan_for_dialog(type, mousex=0, mousey=0):
         else:
             return False
     elif type == "viewcamera": # Purple "View Camera" button in sidemenu
+        t1 = perf_counter()
         zone_screen_height = math.ceil(0.97735 * h)
         zone_screen_width = math.ceil(zone_screen_height * 1.34105)
         zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
@@ -319,9 +357,7 @@ def scan_for_dialog(type, mousex=0, mousey=0):
         camerabutton_y = h * 0.80629
 
         screen_cords = win32gui.ClientToScreen(window, (int(camerabutton_x), int(camerabutton_y)))
-        time.sleep(menu_wait)
         capture = screen_grab(screen_cords[0], screen_cords[1], camerabutton_width, camerabutton_height * 2)
-
         capture.convert('RGB')
         width, height = capture.size
         uppershelf = capture.crop((0, 0, width, 3))
@@ -343,47 +379,17 @@ def scan_for_dialog(type, mousex=0, mousey=0):
             if flag:
                 break
         if flag:
+            t2 = perf_counter()
             if image == imagesToProcess[0]:
+                print((t2 - t1) * 10 ** 3)
                 return 0  # Upper button
             else:
+                print((t2 - t1) * 10 ** 3)
                 return 1  # Lower button
         else:
             return False
 
 
-def move_and_click_rollback():
-    if not able_to_run():
-        return
-    autoit.mouse_click()
-    if scan_for_dialog("exitcamera"):  # Are we currently viewing a camera?
-        return
-    elif scan_for_dialog("signal"):  # Is there a dialog on a signal we control?
-        keyboard.press_and_release("enter")
-    else:  # No dialog found, no rollback toggle
-        return
-    window = win32gui.GetForegroundWindow()
-    rect = win32gui.GetClientRect(window)
-
-    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-    x = bbox[0]
-    y = bbox[1]
-    w = bbox[2]
-    h = bbox[3]
-    zone_screen_height = math.ceil(0.97735 * h)
-    zone_screen_width = math.ceil(zone_screen_height * 1.34105)
-    zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
-
-    mouse_coords = pyautogui.position()
-    rollback_x = zone_screen_width * 0.89955 + zone_screen_x
-    rollback_y = 0.69518 * h
-    rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
-
-    autoit.mouse_click(x=rollback_position[0], y=rollback_position[1], speed=2)
-    time.sleep(0.016)  # Needed to ensure mouseclick registers
-    keyboard.press_and_release("backspace")
-    keyboard.press_and_release("backspace")
-    autoit.mouse_move(mouse_coords.x, mouse_coords.y, speed=1)
-    return
 
 
 def send_zone_message(zone):
@@ -410,25 +416,26 @@ def enabled_warning():
         winsound.Beep(640, 300)
 
 if __name__ == "__main__":
-    keyboard.add_hotkey(2, click_signal, args=["1"])  # 1
-    keyboard.add_hotkey(3, click_signal, args=["2"])  # 2
-    keyboard.add_hotkey(4, click_signal, args=["3"])  # 3
-    # keyboard.add_hotkey(46, click_camera_button)  # C
-    # keyboard.add_hotkey(59, toggle_disable)  # F1
-    # keyboard.add_hotkey('R', move_and_click_rollback)  # R
-    # keyboard.add_hotkey('/', enabled_warning)  # / warning when opening chat while enabled
-    # keyboard.add_hotkey('`', enabled_warning)  # Command bar
-    # keyboard.add_hotkey('\'', enabled_warning)  # Command bar
-    # keyboard.add_hotkey(79, send_zone_message, args=["A"])  # Num 1
-    # keyboard.add_hotkey(80, send_zone_message, args=["B"])  # Num 2
-    # keyboard.add_hotkey(81, send_zone_message, args=["C"])  # Num 3
-    # keyboard.add_hotkey(75, send_zone_message, args=["D"])  # Num 4
-    # keyboard.add_hotkey(76, send_zone_message, args=["E"])  # Num 5
-    # keyboard.add_hotkey(77, send_zone_message, args=["F"])  # Num 6
-    # keyboard.add_hotkey(71, send_zone_message, args=["G"])  # Num 7
+    add_hotkey('g', auto_setup_test)
+    add_hotkey(2, click_signal, args=["1"])  # 1
+    add_hotkey(3, click_signal, args=["2"])  # 2
+    add_hotkey(4, click_signal, args=["3"])  # 3
+    add_hotkey(46, click_camera)  # C
+    add_hotkey(59, toggle_disable)  # F1
+    add_hotkey('R', click_rollback)  # R
+    add_hotkey('/', enabled_warning)  # / warning when opening chat while enabled
+    add_hotkey('`', enabled_warning)  # Command bar
+    add_hotkey('\'', enabled_warning)  # Command bar
+    add_hotkey(79, send_zone_message, args=["A"])  # Num 1
+    add_hotkey(80, send_zone_message, args=["B"])  # Num 2
+    add_hotkey(81, send_zone_message, args=["C"])  # Num 3
+    add_hotkey(75, send_zone_message, args=["D"])  # Num 4
+    add_hotkey(76, send_zone_message, args=["E"])  # Num 5
+    add_hotkey(77, send_zone_message, args=["F"])  # Num 6
+    add_hotkey(71, send_zone_message, args=["G"])  # Num 7
 
     if update_check:
         update_check()
     winsound.Beep(500, 200)
     print("SG+ Successfully Initialized")
-    keyboard.wait()
+    keyboard_wait()
