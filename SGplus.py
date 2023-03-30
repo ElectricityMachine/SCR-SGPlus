@@ -21,6 +21,7 @@ import requests
 import pyperclip
 import pyscreeze
 import sys
+import mss
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -54,6 +55,8 @@ color_vals = {
 color_more = (92, 89, 89)  # Grey 3 Dots
 color_menu = (194, 186, 189)  # Side menu main color
 color_camera_exit = (174, 10, 10)
+color_dialog_white = (227, 218, 218)  # White elements in the signal dialog
+color_viewcamera = (147, 0, 207)  # Purple "View Camera" button
 
 disable = False
 running = False
@@ -103,40 +106,78 @@ def color_approx_eq(color1, color2):
 
 
 def screen_grab(x, y, width, height):
-    image = PIL.ImageGrab.grab(bbox=[x, y, x + width, y + height])
-    return image
+    with mss.mss() as sct:
+        # Calculate bbox
+        left = x
+        top = y
+        right = x + width
+        lower = y + height
+        bbox = (math.ceil(left), math.ceil(top), math.ceil(right), math.ceil(lower))
+        # Grab the image
+        im = sct.grab(bbox)
+        # Convert to PIL image for compatibility
+        newimage = PIL.Image.frombytes('RGB', im.size, im.bgra, 'raw', 'BGRX')
+        return newimage
 
 
 def click_signal(sig):
     if not able_to_run():
         return
+    autoit.mouse_click()
     if scan_for_dialog("signal"):
-        time.sleep(key_wait)
         keyboard.press_and_release(sig)
-        time.sleep(backspace_wait)
         keyboard.press_and_release("backspace")
 
 
 def click_camera_button():
     if not able_to_run():
         return
-    # TODO: Create function that checks for the view camera button when you can't find the menu dialog
 
-    if not able_to_run(): return
-    autoit.mouse_click()
-    if scan_for_dialog("signal"):
-        keyboard.press_and_release("enter")
-    time.sleep(0.016)
-    if not scan_for_dialog("menu"):
-        global signal_mouse_coords
-        # TODO: Search for View Camera if dialog not found
-        #       Search for close button if dialog not found. If found, press backspace and return mouse to previous coords
-        if scan_for_dialog("exitcamera"):  # Exit button found
-            for i in range(2):
-                keyboard.press_and_release("backspace")  # Exit out of all menus
-            if signal_mouse_coords: autoit.mouse_move(signal_mouse_coords.x, signal_mouse_coords.y, speed=1)
+    global signal_mouse_coords
+    if scan_for_dialog("exitcamera"):  # Exit button found
+        keyboard.press_and_release("backspace")
+        keyboard.press_and_release("backspace") # Exit out of all menus, except dialog
+        if signal_mouse_coords:
+            autoit.mouse_move(signal_mouse_coords.x, signal_mouse_coords.y, speed=1)
         return
+    autoit.mouse_click()
+    if scan_for_dialog("signal"):  # Scan for controlled signal dialog
+        keyboard.press_and_release("enter")
+        camera_y = None
+    elif scan_for_dialog("uncontrolled"):
+        keyboard.press_and_release("enter")
+        if scan_for_dialog("viewcamera") == 0:
+            camera_y = 0.80137  # Uncontrolled Auto
+        else:
+            camera_y = 0.92133  # Uncontrolled Manual
+    else:
+        return
+
     signal_mouse_coords = pyautogui.position()
+    window = win32gui.GetForegroundWindow()
+    rect = win32gui.GetClientRect(window)
+
+    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
+    w = bbox[2]
+    h = bbox[3]
+
+    zone_screen_height = math.ceil(0.97735 * h)
+    zone_screen_width = math.ceil(zone_screen_height * 1.34105)
+    zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
+
+    camera_x = zone_screen_width * 0.89414 + zone_screen_x
+    camera_y = (camera_y * h) if camera_y != None else 0.91445 * h
+    camera_position = win32gui.ClientToScreen(window, (int(camera_x), int(camera_y)))
+
+    time.sleep(0.016)
+    autoit.mouse_click(x=camera_position[0], y=camera_position[1], speed=2)
+    return
+
+
+def scan_for_dialog(type):
+    if not able_to_run():
+        return
+    mousex, mousey = pyautogui.position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
@@ -145,73 +186,39 @@ def click_camera_button():
     y = bbox[1]
     w = bbox[2]
     h = bbox[3]
-    zone_screen_height = math.ceil(0.97735849056603773584905660377358 * h)
-    zone_screen_width = math.ceil(zone_screen_height * 1.3410553410553410553410553410553)
-    zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
-
-    mouse_coords = pyautogui.position()
-    camera_x = zone_screen_width * 0.89414414414414414414414414414414 + zone_screen_x
-    camera_y = 0.91445427728613569321533923303835 * h
-    camera_position = win32gui.ClientToScreen(window, (int(camera_x), int(camera_y)))
-
-    autoit.mouse_click(x=camera_position[0], y=camera_position[1], speed=2)
-    return
-
-    # Scan for the menu on the right hand side
-
-
-def scan_for_dialog(type):
-    if not able_to_run():
-        return
-    if type == "signal":
-        # Repeat and look for dots if no signal match is found
-        mouse_pos = pyautogui.position()
-        mousex = mouse_pos[0]
-        mousey = mouse_pos[1]
-
-        window = win32gui.GetForegroundWindow()
-        autoit.mouse_click("left")
-        rect = win32gui.GetClientRect(window)
-
-        bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-        x = bbox[0]
-        y = bbox[1]
-        w = bbox[2]
-        h = bbox[3]
+    if type == "signal": # Gray signal dialog
         # Wait for a set time before checking if the dialog actually pops up. This ensures there should be no time where the script screengrabs and the dialog isn't open after clicking on a signal.
         time.sleep(dialog_wait)
-        start_time_perf = time.perf_counter()
 
-        dialog_box_height = math.ceil((h - 32) * 0.125)
-        dialog_box_width = math.ceil(dialog_box_height * 2)
-        pixel_height = dialog_box_height * 0.171
-        button_shelf = dialog_box_height / 2 * 1.15
-        dialog_box_x = mousex - dialog_box_width / 2
-        dialog_box_y = mousey - dialog_box_height
+        dialogbox_height = math.ceil(h * 0.125)
+        dialogbox_width = math.ceil(dialogbox_height * 2)
+        dialogbox_x = mousex - dialogbox_width / 2
+        dialogbox_y = mousey - dialogbox_height
 
-        capture = screen_grab(dialog_box_x, dialog_box_y,
-                              dialog_box_width, dialog_box_height * 2)
+        capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
         w, h = capture.size
         capture.convert('RGB')
-        # capture.show()
-        shelf = h / 2 * 1.15  # Where the colors we need to check are
         upper = capture.crop((0, 0, w, h / 2))  # Upper
         lower = capture.crop((0, h / 2, w, h))  # Lower
         upperw, upperh = upper.size
-        lowerw, lowerh = lower.size
-        lowershelf = lower.crop((0, lowerh * 2 / 3, lowerw, lowerh * 2 / 3 + 1))
-        uppershelf = upper.crop((0, upperh / 2, upperw, upperh / 2 + 2))
+        width, height = lower.size
+        lowershelf = lower.crop((0, height * 0.66, width, height * 0.66 + 3)) # A 2-3 pixel high cropped image of the middle of the dialog
+        uppershelf = upper.crop((0, upperh * 0.4, upperw, upperh * 0.4 + 2))
         imagesToProcess = [lowershelf, uppershelf]
 
+        white_pixels = 0
         flag = False
         for image in imagesToProcess:
-            for i in range(math.ceil(image.width / 1.6)):
+            for i in range(math.ceil(image.width / 1.6)): # Don't bother checking too much of the image
                 for val in color_vals:
                     if i == 0 or image.height == 0:
                         break
                     r, g, b = image.getpixel((i, image.height - 1))
-                    if color_approx_eq((r, g, b), (val)):
-                        flag = True
+                    if color_approx_eq((r, g, b), (color_dialog_white)): # Count the number of white pixels to avoid false positives
+                        white_pixels += 1
+                    elif color_approx_eq((r, g, b), (val)): # Do we have a button color?
+                        if white_pixels / (image.width * image.height) >= 0.05:  # >5% of pixels are white
+                            flag = True
                         break
                 if flag:
                     break
@@ -220,104 +227,21 @@ def scan_for_dialog(type):
         if flag:
             return True
         else:
-            if debug:
-                # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
-                print("IMAGE DETECTION: Dialog not found")
-                logfile = open("log.txt", "a")
-                logfile.write("IMAGE DETECTION: Dialog not found\n")
-                logfile.close()
             return False
-    elif type == "station":
-        if debug:
-            print("None")
-            logfile = open("log.txt", "a")
-            logfile.write("None\n")
-            logfile.close()
-    elif type == "menu":
-        window = win32gui.GetForegroundWindow()
-        rect = win32gui.GetClientRect(window)
-
-        bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-        x = bbox[0]
-        y = bbox[1]
-        w = bbox[2]
-        h = bbox[3]
-        zone_screen_height = math.ceil(0.97735849056603773584905660377358 * h)
-        zone_screen_width = math.ceil(zone_screen_height * 1.3410553410553410553410553410553)
-        zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
-        zone_screen_y = round(0.00983284169124877089478859390364 * h)
-
-        dialog_box_height = math.ceil(h * 0.125)  # h-32 because of the title bar
-        dialog_box_width = math.ceil(dialog_box_height * 2)  # Width is double the height
-        dialog_box_x = zone_screen_width * 0.79760119940029985007496251874063 + zone_screen_x
-        dialog_box_y = h * 0.76302851524090462143559488692232
-
-        screen_cords = win32gui.ClientToScreen(window, (int(dialog_box_x), int(dialog_box_y)))
-        time.sleep(menu_wait)
-        capture = screen_grab(screen_cords[0], screen_cords[1], dialog_box_width, dialog_box_height)
-        capture_w, capture_h = capture.size
-        capture.convert('RGB')
-        lowerw, lowerh = capture.size
-        lowershelf = capture.crop((0, lowerh / 2, lowerw, lowerh / 2 + 2))
-        imagesToProcess = [lowershelf]
-        # lowershelf.show()
-        flag = False
-        for image in imagesToProcess:
-            for i in range(math.ceil(image.width / 1.6)):
-                for val in color_vals:
-                    if i == 0 or image.height == 0:
-                        break
-                    r, g, b = image.getpixel((i, image.height - 1))
-                    if color_approx_eq((r, g, b), (val)):
-                        flag = True
-                        break
-                if flag:
-                    break
-            if flag:
-                break
-        if flag:
-            return True
-        else:
-            # If not found, repeat the function but scan for view camera pixels
-            if debug:
-                # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
-                print("IMAGE DETECTION: Menu's dialog not found")
-                logfile = open("log.txt", "a")
-                logfile.write("IMAGE DETECTION: Menu's dialog not found\n")
-                logfile.close()
-            return False
-    elif type == "exitcamera":
-        if debug:
-            print("Exitcamera run")
-            logfile = open("log.txt", "a")
-            logfile.write("Exitcamera run\n")
-            logfile.close()
-        window = win32gui.GetForegroundWindow()
-        rect = win32gui.GetClientRect(window)
-
-        bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-        x = bbox[0]
-        y = bbox[1]
-        w = bbox[2]
-        h = bbox[3]
-
+    elif type == "exitcamera": # Red "X" button at the top of screen when in a camera view
         camera_controls_width = 283
-        camera_controls_height = 50
-        camera_controls_y = 85 + y
         camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
 
         exit_camera_button_y = 85 + y
-        exit_camera_button_x = 0.91166077738515901060070671378092 * camera_controls_width + camera_controls_x - 5
+        exit_camera_button_x = 0.91166 * camera_controls_width + camera_controls_x - 5
         exit_camera_button_width = exit_camera_button_height = 50
 
         screen_cords = win32gui.ClientToScreen(window, (int(exit_camera_button_x), int(exit_camera_button_y)))
         capture = screen_grab(screen_cords[0], screen_cords[1], exit_camera_button_width, exit_camera_button_height)
-        capture_w, capture_h = capture.size
         capture.convert('RGB')
-        lowerw, lowerh = capture.size
-        lowershelf = capture.crop((0, lowerh / 2, lowerw, lowerh / 2 + 2))
+        width, height = capture.size
+        lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
         imagesToProcess = [lowershelf]
-        # lowershelf.show()
         flag = False
         for image in imagesToProcess:
             for i in range(math.ceil(image.width / 1.6)):
@@ -332,28 +256,95 @@ def scan_for_dialog(type):
                 break
         if flag:
             return True
+    elif type == "uncontrolled": # Gray signal dialog that isn't controlled by us
+        dialogbox_height = math.ceil(h * 0.125)
+        dialogbox_width = math.ceil(dialogbox_height * 2)
+        dialogbox_x = mousex - dialogbox_width / 2
+        dialogbox_y = mousey - dialogbox_height
+
+        capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
+        w, h = capture.size
+        capture.convert('RGB')
+        upper = capture.crop((0, 0, w, h / 2))  # Upper
+        lower = capture.crop((0, h / 2, w, h))  # Lower
+        upperw, upperh = upper.size
+        width, height = lower.size
+        lowershelf = lower.crop((0, height * 0.33, width / 2, height * 1 / 3 + 2))
+        upper = capture.crop((0, 0, w, h / 2))  # Upper
+        upperw, upperh = upper.size
+        uppershelf = upper.crop((0, upperh * 0.1, upperw / 2, upperh * 0.1 + 2))
+        imagesToProcess = [lowershelf, uppershelf]
+        white_pixels = 0
+        flag = False
+        for image in imagesToProcess:
+            for i in range(math.ceil(image.width)):
+                for i2 in range(math.ceil(image.height)):
+                    r, g, b = image.getpixel((i, i2))
+                    if color_approx_eq((r, g, b), (color_dialog_white)):
+                        white_pixels += 1
+                    if white_pixels / image.width >= 0.2:  # Greater than 20% of pixels are white
+                        flag = True
+                        break
+                if flag:
+                    break
+            if flag:
+                break
+        if flag:
+            return True
         else:
-            # If not found, repeat the function but scan for view camera pixels
-            if debug:
-                # If you encounter this but the dialog is on the screen, please submit an issue on GitHub detailing
-                print("IMAGE DETECTION: Menu's dialog not found")
-                logfile = open("log.txt", "a")
-                logfile.write("IMAGE DETECTION: Menu's dialog not found\n")
-                logfile.close()
+            return False
+    elif type == "viewcamera": # Purple "View Camera" button in sidemenu
+        zone_screen_height = math.ceil(0.97735 * h)
+        zone_screen_width = math.ceil(zone_screen_height * 1.34105)
+        zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
+
+        camerabutton_height = math.ceil(h * 0.125 * 0.375)
+        camerabutton_width = math.ceil(camerabutton_height * 2 / 0.375)
+        camerabutton_x = zone_screen_width * 0.79760 + zone_screen_x
+        camerabutton_y = h * 0.80629
+
+        screen_cords = win32gui.ClientToScreen(window, (int(camerabutton_x), int(camerabutton_y)))
+        time.sleep(menu_wait)
+        capture = screen_grab(screen_cords[0], screen_cords[1], camerabutton_width, camerabutton_height * 2)
+
+        capture.convert('RGB')
+        width, height = capture.size
+        uppershelf = capture.crop((0, 0, width, 3))
+        lowershelf = capture.crop((0, height * 0.94, width, height))
+
+        imagesToProcess = [uppershelf, lowershelf]
+        flag = False
+        for image in imagesToProcess:
+            for i in range(math.ceil(image.width * 0.2)):
+                for val in color_viewcamera:
+                    if i == 0 or image.height == 0:
+                        break
+                    r, g, b = image.getpixel((i, image.height - 1))
+                    if color_approx_eq((r, g, b), color_viewcamera):
+                        flag = True
+                        break
+                if flag:
+                    break
+            if flag:
+                break
+        if flag:
+            if image == imagesToProcess[0]:
+                return 0  # Upper button
+            else:
+                return 1  # Lower button
+        else:
+            return False
 
 
 def move_and_click_rollback():
-    if not able_to_run(): return
+    if not able_to_run():
+        return
     autoit.mouse_click()
-    if scan_for_dialog("exitcamera"):
+    if scan_for_dialog("exitcamera"):  # Are we currently viewing a camera?
         return
-    elif scan_for_dialog("signal"):
+    elif scan_for_dialog("signal"):  # Is there a dialog on a signal we control?
         keyboard.press_and_release("enter")
-    else:
-        print("Rollback couldn't run due to initial dialog not found")
-        return
-    if not scan_for_dialog("menu"):
-        print("Sidemenu not found")
+    else:  # No dialog found, no rollback toggle
         return
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
@@ -363,17 +354,17 @@ def move_and_click_rollback():
     y = bbox[1]
     w = bbox[2]
     h = bbox[3]
-    zone_screen_height = math.ceil(0.97735849056603773584905660377358 * h)
-    zone_screen_width = math.ceil(zone_screen_height * 1.3410553410553410553410553410553)
+    zone_screen_height = math.ceil(0.97735 * h)
+    zone_screen_width = math.ceil(zone_screen_height * 1.34105)
     zone_screen_x = math.ceil(w / 2 - zone_screen_width / 2)
 
     mouse_coords = pyautogui.position()
-    rollback_x = zone_screen_width * 0.89955022 + zone_screen_x
-    rollback_y = 0.6951819075 * h
+    rollback_x = zone_screen_width * 0.89955 + zone_screen_x
+    rollback_y = 0.69518 * h
     rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
 
     autoit.mouse_click(x=rollback_position[0], y=rollback_position[1], speed=2)
-    time.sleep(0.016)
+    time.sleep(0.016)  # Needed to ensure mouseclick registers
     keyboard.press_and_release("backspace")
     keyboard.press_and_release("backspace")
     autoit.mouse_move(mouse_coords.x, mouse_coords.y, speed=1)
@@ -564,22 +555,25 @@ class Overlay(QMainWindow):
         keyboard.add_hotkey(76, send_zone_message, args=["E"])  # Num 5
         keyboard.add_hotkey(77, send_zone_message, args=["F"])  # Num 6
         keyboard.add_hotkey(71, send_zone_message, args=["G"])  # Num 7
-        winsound.Beep(500, 100)
+        winsound.Beep(640, 300)
 
     def remove_hotkeys(self):
-        keyboard.remove_hotkey(2)
-        keyboard.remove_hotkey(3)
-        keyboard.remove_hotkey(4)
-        keyboard.remove_hotkey(46)
-        keyboard.remove_hotkey('R')
-        keyboard.remove_hotkey('G')
-        keyboard.remove_hotkey(79)
-        keyboard.remove_hotkey(80)
-        keyboard.remove_hotkey(81)
-        keyboard.remove_hotkey(75)
-        keyboard.remove_hotkey(76)
-        keyboard.remove_hotkey(77)
-        keyboard.remove_hotkey(71)
+        try:
+            keyboard.remove_hotkey(2)
+            keyboard.remove_hotkey(3)
+            keyboard.remove_hotkey(4)
+            keyboard.remove_hotkey(46)
+            keyboard.remove_hotkey('R')
+            keyboard.remove_hotkey('G')
+            keyboard.remove_hotkey(79)
+            keyboard.remove_hotkey(80)
+            keyboard.remove_hotkey(81)
+            keyboard.remove_hotkey(75)
+            keyboard.remove_hotkey(76)
+            keyboard.remove_hotkey(77)
+            keyboard.remove_hotkey(71)
+        except KeyError:
+            pass
         winsound.Beep(400, 100)
 
     def toggle_disable(self):
