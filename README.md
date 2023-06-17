@@ -51,6 +51,10 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |R|Change rollback setting of currently hovered signal
 ---
 
+### **Installation by installer**
+
+Download the "sgplus-installer" in the releases tab. This will add shortcuts and start menu entries for you so that you do not need to go looking for the file every time you want to run it.
+
 ### **Installation by source**
 
 1. Download and install the latest Python3 installer from [Python Downloads Page](https://www.python.org/downloads/)
