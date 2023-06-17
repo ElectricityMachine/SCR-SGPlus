@@ -25,18 +25,21 @@ from pypresence import Presence
 import time
 import mss
 import pyperclip
-client_id = "1119667370710007940"
-RPC = Presence(client_id)
+try:
+    client_id = "1119667370710007940"
+    RPC = Presence(client_id)
 
-RPC.connect()
+    RPC.connect()
 
-RPC.update(
-    state="Signalling in SCR with SG+",
-    large_image="sgplus",
-    large_text="SG+",
-    buttons=[{"label": "Download SG+", "url": "https://github.com/enigmapr0ject/SCR-SGPlus"}],
-    start=round(time.time())
-)
+    RPC.update(
+        state="Signalling in SCR with SG+",
+        large_image="sgplus",
+        large_text="SG+",
+        buttons=[{"label": "Download SG+", "url": "https://github.com/enigmapr0ject/SCR-SGPlus"}],
+        start=round(time.time())
+    )
+except:
+    pass
 # ElectricityMachine
 # GUI by xDistinctx
 # Version: 0.5.0
