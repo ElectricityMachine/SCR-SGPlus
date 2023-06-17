@@ -1,43 +1,50 @@
-# ElectricityMachine
-# GUI by xDistinctx
-# Version: 0.4.0
-# Major changes: Add toggle rollback feature
-# Description: A script to automate tasks when signalling for SCR
-# Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera
-# How to use: Hover over a signal and press the corresponding keybind to perform the action
-import pyautogui
-from pyautogui import *
-import time
-import math
-import autoit
-import keyboard
-import win32api
-import win32gui
-import winsound
-import PIL
-import PIL.ImageGrab
-import pygetwindow
+"""
+Window that sticks to the top of the screen
+"""
+import hashlib
 import requests
-import pyperclip
-import pyscreeze
-import sys
-import mss
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import ctypes
+import pyautogui
+from pyautogui import *
+import math
+import autoit
+import keyboard
+import win32gui
+import winsound
+import PIL.ImageGrab
 import os
 import json
 import webbrowser
 from modules import *
 import traceback
 import tempfile
-disabled = None
-starttime = time.time()
+from pypresence import Presence
+import time
+import mss
+import pyperclip
+client_id = "1119667370710007940"
+RPC = Presence(client_id)
 
-# TODO: Add check for pixels in signal dialog detection that figure out percentage of pixels that are of the color, and if they don't match certain tolerances (false positive), don't execute. This will solve a potential issue if backspace to leave desk ever gets fixed
+RPC.connect()
 
-version = "v0.4.0"
+RPC.update(
+    state="Signalling in SCR with SG+",
+    large_image="sgplus",
+    large_text="SG+",
+    buttons=[{"label": "Download SG+", "url": "https://github.com/enigmapr0ject/SCR-SGPlus"}],
+    start=round(time.time())
+)
+# ElectricityMachine
+# GUI by xDistinctx
+# Version: 0.5.0
+# Major changes: Add toggle rollback feature
+# Description: A script to automate tasks when signalling for SCR
+# Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera, R for rollback
+# How to use: Hover over a signal and press the corresponding keybind to perform the action
+version = "v0.5"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
@@ -469,7 +476,7 @@ class Overlay(QMainWindow):
         # Translucent background
         self.setAttribute(Qt.WA_TranslucentBackground)
         # Properties
-        with open("config/config.json", "r") as f:
+        with open(os.getcwd() + "/config/config.json", "r") as f:
             self.config = json.load(f)
             f.close()
         self.setStyleSheet("""
@@ -735,7 +742,7 @@ class Update(QMainWindow):
         Mouse press event
         :param event:
         """
-        self.dragPos = event.globalPos().toPoint()
+        self.dragPos = event.globalPos().toPointF()
 
 class Properties(QMainWindow):
     """
@@ -761,11 +768,11 @@ class Properties(QMainWindow):
         self.ui.updateButton.clicked.connect(self.update)
         self.ui.changeHotkey.clicked.connect(self.changeHotkey)
 
-        with open("config/config.json", "r") as f:
+        with open(os.getcwd() + "/config/config.json", "r") as f:
             self.config = json.load(f)
             f.close()
         self.key = self.config["toggle_key"]
-        self.ui.animationDuration.setPlainText(str(round(self.config["animation_duration"])) + "ms")
+        self.ui.animationDuration.setPlainText(str(self.config["animation_duration"]) + "ms")
         # Convert key code to key name
         keycode = self.config["toggle_key"]
         if keycode == 59:
@@ -784,7 +791,6 @@ class Properties(QMainWindow):
         def waitForKeyPress():
             # Record keypress until the first key is pressed
             self.key = keyboard.read_key()
-            print(self.key)
         self.ui.label_2.setText('<html><head/><body><p align="center">Press any key to assign this hotkey.</p></body></html>')
         # Wait for key press, in multithread
         self.worker = Worker(waitForKeyPress)
@@ -813,7 +819,7 @@ class Properties(QMainWindow):
         configArray = {"key_wait": int(actionDelay), "backspace_wait": 0, "dialog_wait": 0.085, "debug": debugMode, "check_for_update": self.config["check_for_update"], "animation_duration": animationDuration, "enabledOnStart": enabledOnStart, "toggle_key": self.key}
         # Convert to JSON object and write to file
         jsonArray = json.dumps(configArray)
-        with open("config/config.json", "w") as f:
+        with open(os.getcwd() + "/config/config.json", "w") as f:
             f.write(jsonArray)
             f.close()
         self.ui.updateButton.setText("Saved!")
@@ -833,12 +839,17 @@ class Properties(QMainWindow):
         Mouse press event
         :param event:
         """
-        self.dragPos = event.globalPos().toPoint()
+        self.dragPos = event.globalPos().toPointF()
+
+
+def failedFunc():
+    webbrowser.open("https://enigmapr0ject.tech/sgplus")
+    sys.exit(-1)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon('img/icon.ico'))
+    app.setWindowIcon(QIcon('icon.ico'))
     pixmap = QPixmap('img/splash.png')
     splash = QSplashScreen(pixmap)
     splash.show()
@@ -870,6 +881,33 @@ if __name__ == "__main__":
 
         if os.path.exists(splash_filename):
             os.unlink(splash_filename)
+
+    with open(sys.argv[0], "rb") as f:
+        exe = f.read()
+        f.close()
+    hash = hashlib.sha256(exe).hexdigest()
+    data = {"hash": hash}
+    r = requests.post("https://api.enigmapr0ject.tech/sgplus/checksum/index.php", data=data)
+    if r.status_code == 200:
+        if r.json()["status"] == "success":
+            checksumWindow = QMessageBox()
+            checksumWindow.setWindowTitle("Checksum Verified")
+            checksumWindow.setText("The checksum of the executable has been verified. This means that the executable has not been tampered with.")
+            checksumWindow.setIcon(QMessageBox.Information)
+            checksumWindow.setStandardButtons(QMessageBox.Ok)
+            checksumWindow.exec()
+        else:
+            checksumWindow = QMessageBox()
+            checksumWindow.setWindowTitle("Checksum Failed")
+            checksumWindow.setText("The checksum of the executable has failed. This means that the executable has been tampered with. Please download a new version from the website.")
+            checksumWindow.setIcon(QMessageBox.Critical)
+            checksumWindow.setStandardButtons(QMessageBox.Open)
+            # Link the open button
+            openButton = checksumWindow.button(QMessageBox.Open)
+            openButton.setText("Open Website")
+            openButton.setIconSize(QSize(0, 0))
+            openButton.clicked.connect(lambda: failedFunc())
+            checksumWindow.exec()
 
     if config["check_for_update"]:
         if update_check():

@@ -1,7 +1,3 @@
-<h1><b> ATTENTION: A new SCR update has broken the functionality of the script. If you notice a "Desk Exit" dialog appear when you change a signal, please try a different server or don't use the script. </b></h1>
-
-Reproducing this issue has been tricky, it seems to work some times but not other times. If you are affected by the issue, remember it is NOT caused by me, but rather an SCR/ROBLOX update.
-
 <h1 align="center">SCR: SG+</h1>
 
 <h1 align="center">
@@ -10,11 +6,13 @@ Reproducing this issue has been tricky, it seems to work some times but not othe
 
 </h1>
 
+<i><b> ATTENTION: A new SCR update has broken the functionality of the script. If you notice a "Desk Exit" dialog appear when you change a signal, please try a different server or don't use the script. Reproducing this issue has been tricky, it seems to work some times but not other times. If you are affected by the issue, remember it is NOT caused by me, but rather an SCR/ROBLOX update.</b><i>
 
-### Description
+---
+### <u>Description</u>
 SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect or open a camera view with only one button press.
 
-### Will this get me demoted? Am I safe to use this?
+### <u>Will this get me demoted? Am I safe to use this?</u>
 **There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
 
 ### Usage:
@@ -38,6 +36,8 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 
 ### Known issues:
 - Camera button for platforms might be unreliable. This may require some additional attention.
+- Overlay will randomly exit/crash.
+- Startup failure if configuration directory is missing.
 ### Controls:
 
 ---
@@ -48,6 +48,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 |2|Change currently hovered signal to Caution|
 |3|Change currently hovered signal to Proceed|
 |C|Enter camera mode of currently hovered signal. If you are already in camera mode, it will exit camera mode|
+|R|Change rollback setting of currently hovered signal
 ---
 
 ### **Installation by source**
@@ -67,8 +68,12 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 
 Download the archive listed in the releases tab on the right side and extract it to a folder. Run the executable contained within.
 
-### License
+### <u>License</u>
 By using this script, you MUST adhere to the license terms in the LICENSE file.
 
-### Contact information
+### <u>Contact information</u>
 If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt that way to avoid scrapers and bots.
+
+### <u>Credit</u>
+* GUI and Binary: [xDistinctx](https://github.com/enigmapr0ject)
+* Main logic: [ElectricityMachine](https://github.com/ElectricityMachine)

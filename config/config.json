@@ -1,1 +1,1 @@
-{"key_wait": 0, "backspace_wait": 0, "dialog_wait": 0.085, "debug": true, "check_for_update": false, "animation_duration": 100, "enabledOnStart": false, "toggle_key": "f1"}
+{"key_wait": 0, "backspace_wait": 0, "dialog_wait": 0.085, "debug": false, "check_for_update": false, "animation_duration": 100, "enabledOnStart": false, "toggle_key": "f1"}

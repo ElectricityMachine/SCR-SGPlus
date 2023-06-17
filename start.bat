@@ -1,1 +1,1 @@
-python SGplus.py
+py SGplus.py
