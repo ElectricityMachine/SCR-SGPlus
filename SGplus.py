@@ -35,7 +35,7 @@ try:
         state="Signalling in SCR with SG+",
         large_image="sgplus",
         large_text="SG+",
-        buttons=[{"label": "Download SG+", "url": "https://github.com/enigmapr0ject/SCR-SGPlus"}],
+        buttons=[{"label": "Download SG+", "url": "https://github.com/ameasere/SCR-SGPlus"}],
         start=round(time.time())
     )
 except:
@@ -846,7 +846,7 @@ class Properties(QMainWindow):
 
 
 def failedFunc():
-    webbrowser.open("https://enigmapr0ject.tech/sgplus")
+    webbrowser.open("https://ameasere.com/sgplus")
     sys.exit(-1)
 
 
@@ -890,7 +890,7 @@ if __name__ == "__main__":
         f.close()
     hash = hashlib.sha256(exe).hexdigest()
     data = {"hash": hash}
-    r = requests.post("https://api.enigmapr0ject.tech/sgplus/checksum/index.php", data=data)
+    r = requests.post("https://api.ameasere.com/sgplus/checksum/index.php", data=data)
     if r.status_code == 200:
         if r.json()["status"] == "success":
             checksumWindow = QMessageBox()
