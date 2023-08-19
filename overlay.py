@@ -25,6 +25,8 @@ from pypresence import Presence
 import time
 import mss
 import pyperclip
+import playsound
+import sys
 try:
     client_id = "1119667370710007940"
     RPC = Presence(client_id)
@@ -35,17 +37,18 @@ try:
         state="Signalling in SCR with SG+",
         large_image="sgplus",
         large_text="SG+",
-        buttons=[{"label": "Download SG+", "url": "https://github.com/ameasere/SCR-SGPlus"}],
+        buttons=[{"label": "Download SG+", "url": "https://github.com/ameasere/SCR-SGPlus"}, {"label": "Play SCR", "url": "https://www.roblox.com/games/696347899/Stepford-County-Railway"}],
         start=round(time.time())
     )
 except:
     pass
-# ElectricityMachine
-# GUI by xDistinctx
+# Original Author: ElectricityMachine
+# GUI by Ameasere
 # Version: 0.5.0
 # Major changes: Add toggle rollback feature
 # Description: A script to automate tasks when signalling for SCR
-# Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera, R for rollback
+# Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera, R for rollback. Numpad required
+# for automatic zone messaging. F1 to toggle the script on and off.
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
 version = "v0.5"
 key_wait = 0
@@ -394,7 +397,7 @@ def send_zone_message(zone):
         'G': "Zone G (James St. to Esterfield) is now under manual signalling control."
     }
 
-    winsound.Beep(600, 200)
+    winsound.Beep(500, 200)
     pyperclip.copy(switch.get(zone))
 
 
@@ -475,9 +478,12 @@ class Overlay(QMainWindow):
         # Parent constructor
         QMainWindow.__init__(self)
         # Set window flags
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.topItem = None
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         # Translucent background
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.activationSound = "mp3/activated.mp3"
+        self.deactivationSound = "mp3/disabled.mp3"
         # Properties
         with open(os.getcwd() + "/config/config.json", "r") as f:
             self.config = json.load(f)
@@ -551,6 +557,15 @@ class Overlay(QMainWindow):
         if not self.disabled:
             self.add_hotkeys()
 
+        # Show in the system tray
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(u":/images/icon.ico"))
+
+        # Add right click for menu
+        self.tray_icon.activated.connect(self.tray_icon_activated)
+        self.tray_icon.setToolTip("SG+")
+        self.tray_icon.show()
+
     def add_hotkeys(self):
         keyboard.add_hotkey(2, click_signal, args=["1"])  # 1
         keyboard.add_hotkey(3, click_signal, args=["2"])  # 2
@@ -565,7 +580,6 @@ class Overlay(QMainWindow):
         keyboard.add_hotkey(76, send_zone_message, args=["E"])  # Num 5
         keyboard.add_hotkey(77, send_zone_message, args=["F"])  # Num 6
         keyboard.add_hotkey(71, send_zone_message, args=["G"])  # Num 7
-        winsound.Beep(640, 300)
 
     def remove_hotkeys(self):
         try:
@@ -584,7 +598,57 @@ class Overlay(QMainWindow):
             keyboard.remove_hotkey(71)
         except KeyError:
             pass
-        winsound.Beep(400, 100)
+
+    def tray_icon_activated(self, reason):
+        # If right click, open a menu
+        if reason == QSystemTrayIcon.Trigger:
+            menu = QMenu()
+            # Add menu items
+
+            # Top item should be the current status and name
+            self.topItem = menu.addAction("SG+: " + ("Enabled" if not self.disabled else "Disabled"))
+            self.topItem.setEnabled(False)
+            global RPC
+            self.RPCstatus = menu.addAction("RPC: " + ("Enabled" if RPC else "Disabled"))
+            self.RPCstatus.setEnabled(False)
+            menu.addSeparator()
+
+            if self.disabled:
+                self.menubutton = menu.addAction("Enable")
+            else:
+                self.menubutton = menu.addAction("Disable")
+            self.menubutton2 = menu.addAction("Settings")
+            self.menubutton4 = menu.addAction("Toggle RPC")
+            self.menubutton3 = menu.addAction("Exit")
+            # Connect menu items to functions
+            self.menubutton.triggered.connect(self.toggle_disable)
+            self.menubutton2.triggered.connect(self.propertiesOpen)
+            self.menubutton4.triggered.connect(self.RPCtoggle)
+            self.menubutton3.triggered.connect(lambda: sys.exit(0))
+            # Show menu
+            menu.exec(QCursor.pos())
+
+    def RPCtoggle(self):
+        global RPC
+        if RPC:
+            RPC.close()
+            RPC = None
+        else:
+            try:
+                client_id = "1119667370710007940"
+                RPC = Presence(client_id)
+
+                RPC.connect()
+
+                RPC.update(
+                    state="Signalling in SCR with SG+",
+                    large_image="sgplus",
+                    large_text="SG+",
+                    buttons=[{"label": "Download SG+", "url": "https://github.com/ameasere/SCR-SGPlus"}],
+                    start=round(time.time())
+                )
+            except Exception as e:
+                print(repr(e))
 
     def toggle_disable(self):
         global disabled
@@ -594,6 +658,9 @@ class Overlay(QMainWindow):
             worker = Worker(self.add_hotkeys)
             self.threadpool.start(worker)
             self.label.setText("SG+: Enabled")
+            path = os.getcwd() + '\\mp3\\activated.mp3'
+            soundWorker = Worker(lambda: playsound.playsound(path, True))
+            self.threadpool.start(soundWorker)
             self.label.setStyleSheet("background-color: green; color: white; font-size: 20px; font: 14pt \"Raleway Bold\";")
             if self.button is not None:
                 self.button.setText("Disable")
@@ -605,6 +672,9 @@ class Overlay(QMainWindow):
             self.disabled = True
             disabled = True
             self.label.setText("SG+: Disabled")
+            path = os.getcwd() + '\\mp3\\disabled.mp3'
+            soundWorker = Worker(lambda: playsound.playsound(path, True))
+            self.threadpool.start(soundWorker)
             self.label.setStyleSheet(
                 "background-color: red; color: white; font-size: 20px; font: 14pt \"Raleway Bold\";")
             if self.button is not None:
