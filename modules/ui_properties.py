@@ -209,6 +209,6 @@ class Ui_PropertiesWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.debugMode.setText("")
         self.changeHotkey.setText(QCoreApplication.translate("PropertiesWindow", u"Change", None))
-        self.label_8.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p><span style=\" font-size:8pt; font-style:italic;\">Developed by Electricity_Machine and xDistinctx</span></p></body></html>", None))
+        self.label_8.setText(QCoreApplication.translate("PropertiesWindow", u"<html><head/><body><p><span style=\" font-size:8pt; font-style:italic;\">Developed by Electricity_Machine and Ameasere</span></p></body></html>", None))
     # retranslateUi
 

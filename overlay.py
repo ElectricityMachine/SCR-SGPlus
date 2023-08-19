@@ -44,13 +44,13 @@ except:
     pass
 # Original Author: ElectricityMachine
 # GUI by Ameasere
-# Version: 0.5.0
+# Version: 0.5.1
 # Major changes: Add toggle rollback feature
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera, R for rollback. Numpad required
 # for automatic zone messaging. F1 to toggle the script on and off.
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
-version = "v0.5"
+version = "v0.5.1"
 key_wait = 0
 backspace_wait = 0
 dialog_wait = 0.085
@@ -727,7 +727,7 @@ class Overlay(QMainWindow):
 
         # Add Exit button under self.button2
         self.button3 = QPushButton("Exit", self)
-        self.button3.clicked.connect(self.close)
+        self.button3.clicked.connect(lambda: sys.exit(0))
         # Move button to under the Properties button
         self.button3.move(0, self.height() + self.separator.height() + self.button.height() + self.button2.height())
         self.button3.resize(self.width(), self.height())
@@ -960,16 +960,9 @@ if __name__ == "__main__":
         f.close()
     hash = hashlib.sha256(exe).hexdigest()
     data = {"hash": hash}
-    r = requests.post("https://api.ameasere.com/sgplus/checksum/index.php", data=data)
+    r = requests.post("https://api.ameasere.com/sgplus/checksum/", data=data)
     if r.status_code == 200:
-        if r.json()["status"] == "success":
-            checksumWindow = QMessageBox()
-            checksumWindow.setWindowTitle("Checksum Verified")
-            checksumWindow.setText("The checksum of the executable has been verified. This means that the executable has not been tampered with.")
-            checksumWindow.setIcon(QMessageBox.Information)
-            checksumWindow.setStandardButtons(QMessageBox.Ok)
-            checksumWindow.exec()
-        else:
+        if r.json()["status"] != "success":
             checksumWindow = QMessageBox()
             checksumWindow.setWindowTitle("Checksum Failed")
             checksumWindow.setText("The checksum of the executable has failed. This means that the executable has been tampered with. Please download a new version from the website.")
