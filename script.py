@@ -8,6 +8,9 @@
 
 import math
 import time
+from typing import Literal
+
+from collections.abc import Callable
 import winsound
 import logging
 import autoit
@@ -17,21 +20,21 @@ import mouse
 import pyperclip
 import win32gui
 import threading
-import numpy as np
-from settings import AVG_FPS, VERSION, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, COLORS
+from numpy import array as np_array, allclose as np_allclose
+from settings import AVG_FPS, VERSION, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
-from PIL.Image import frombytes
+from PIL.Image import frombytes, Image
 from requests import get as requests_get
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if DEBUG_ENABLED else logging.INFO)
 enabled = True
-signal_mouse_coords = None  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
-one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)  # Calculate time for 1 frame and round to 4 decimal places
+signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
+one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
 
 
-def update_check():
+def update_check() -> None:
     logging.debug("update_check: called")
     """Fetch the latest release version from the GitHub repo and inform the user if an update is available"""
     # TODO: Implement better version check functionality instead of just difference in strings
@@ -44,10 +47,9 @@ def update_check():
     if VERSION != data["tag_name"]:
         print(f"{colorama.Fore.RED}NOTICE: A new update is available for SG+!")
         print(
-            colorama.Fore.RED
-            + "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
+            "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
         )
-        print(f'{colorama.Fore.RED}and follow the instructions under "Installation"')
+        print('and follow the instructions under "Installation"')
         print(colorama.Fore.WHITE)
 
 
@@ -74,9 +76,9 @@ def screen_grab(x: int, y: int, width: int, height: int):
         return frombytes("RGB", im.size, im.bgra, "raw", "BGRX")
 
 
-def mouseclick_left() -> None:
-    mouse.press("left")
-    mouse.release("left")
+def mouse_click(button: Literal["left", "right"]) -> None:
+    mouse.press(button)
+    mouse.release(button)
 
 
 def move_mouse(x: int, y: int, speed=1):
@@ -88,7 +90,7 @@ def sleep_frames(frames: int, minwait=0) -> None:
     time.sleep(max((frames * one_frame_time), minwait))
 
 
-def check_able_to_run(callback):
+def check_able_to_run(callback: Callable) -> None | Callable:
     logging.debug("check_able_to_run: called")
 
     def wrapper(*args):
@@ -108,14 +110,14 @@ def check_able_to_run(callback):
 
 
 @check_able_to_run
-def click_signal(sig: str):
+def click_signal(sig: str) -> None:
     logging.debug("click_signal: called")
     coord = mouse.get_position()
-    mouseclick_left()
-    time.sleep(one_frame_time * 3)
+    mouse_click("left")
+    time.sleep(one_frame_time * 2)
     if scan_for_dialog("signal", coord[0], coord[1]):
         logging.debug("click_signal: scan_for_dialog returned true")
-        time.sleep(one_frame_time * 2)
+        time.sleep(one_frame_time * 3)
         press_and_release(sig)
         time.sleep(AVG_PING / 4_000)
         press_and_release("backspace")
@@ -125,7 +127,7 @@ def click_signal(sig: str):
 def click_rollback() -> None:
     logging.debug("click_rollback: called")
     mousex, mousey = mouse.get_position()
-    mouseclick_left()
+    mouse_click("left")
     sleep_frames(2)
     if scan_for_dialog("exitcamera"):
         logging.debug("click_rollback: scan_for_dialog(exitcamera) returned true")
@@ -151,11 +153,11 @@ def click_rollback() -> None:
     rollback_y = 0.69518 * window_height
     rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
 
-    move_mouse(x=rollback_position[0], y=rollback_position[1], speed=2)
-    mouseclick_left()
+    move_mouse(x=rollback_position[0], y=rollback_position[1], speed=1)
+    mouse_click("left")
     sleep_frames(3)
     press_and_release("backspace, backspace")
-    move_mouse(mousex, mousey, speed=1)
+    move_mouse(mousex, mousey, speed=0)
     return
 
 
@@ -172,7 +174,7 @@ def click_camera() -> None:
         return
     logging.debug("click_camera: exitcamera dialog not found, executing main body")
     signal_mouse_coords = mouse.get_position()
-    mouseclick_left()
+    mouse_click("left")
     sleep_frames(2)
     if scan_for_dialog("signal"):
         logging.debug("click_camera: signal scan_for_dialog found")
@@ -206,7 +208,7 @@ def click_camera() -> None:
 
     sleep_frames(1)
     move_mouse(x=camera_position[0], y=camera_position[1], speed=2)
-    mouseclick_left()
+    mouse_click("left")
     return
 
 
@@ -227,15 +229,14 @@ def toggle_disable() -> None:
     beep.start()
 
 
-@check_able_to_run
-def scan_for_dialog(type: str, mousex=0, mousey=0):
+def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
     logging.debug("scan_for_dialog: called")
     if mousex is mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
-    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
+    bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
     _x = bbox[0]
     _y = bbox[1]
     w = bbox[2]
@@ -249,13 +250,15 @@ def scan_for_dialog(type: str, mousex=0, mousey=0):
     elif type == "viewcamera":
         return find_camera_buttons(h, w, window)
 
+    return False
+
 
 def find_uncontrolled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
-    dialogbox_x = mousex - dialogbox_width / 2
-    dialogbox_y = mousey - dialogbox_height
+    dialogbox_x = math.floor(mousex - dialogbox_width / 2)
+    dialogbox_y = math.floor(mousey - dialogbox_height)
 
     capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
     w, h = capture.size
@@ -271,7 +274,7 @@ def find_uncontrolled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
 
     for image in imagesToProcess:
         logging.debug("find_uncontrolled_sig_dialog: iterating images")
-        if check_color_percentage_single(image, COLORS["COLOR_DIALOG_WHITE"]):
+        if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE):
             logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
             return True
     logging.debug("find_uncontrolled_sig_dialog: return false path")
@@ -282,8 +285,8 @@ def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     logging.debug("find_controlled_sig: called")
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
-    dialogbox_x = mousex - dialogbox_width / 2
-    dialogbox_y = mousey - dialogbox_height
+    dialogbox_x = math.floor(mousex - dialogbox_width / 2)
+    dialogbox_y = math.floor(mousey - dialogbox_height)
 
     capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
     w, h = capture.size
@@ -296,15 +299,15 @@ def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     imagesToProcess = [lowershelf, uppershelf]
     logging.debug("find_controlled_sig_dialog: made it to generator")
     result = any(
-        check_color_percentage_single(image, COLORS["COLOR_DIALOG_WHITE"], threshold=0.01)
-        and check_color_multiple(image, COLORS["COLOR_DIALOG_BUTTONS"])
+        check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE, threshold=0.01)
+        and check_color_multiple(image, Colors.COLOR_DIALOG_BUTTONS)
         for image in imagesToProcess
     )  # this doesn't run if check for white pixels is false. must change TODO
     logging.debug(f"find_controlled_sig_dialog: result: {result}")
     return result
 
 
-def find_camera_buttons(h: int, w: int, window):
+def find_camera_buttons(h: int, w: int, windowID: int):
     logging.debug("find_camera_button: called")
     zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
 
@@ -313,7 +316,7 @@ def find_camera_buttons(h: int, w: int, window):
     camerabutton_x = zone_screen_width * 0.79760 + zone_screen_x
     camerabutton_y = h * 0.80629
 
-    screen_cords = win32gui.ClientToScreen(window, (int(camerabutton_x), int(camerabutton_y)))
+    screen_cords = win32gui.ClientToScreen(windowID, (int(camerabutton_x), int(camerabutton_y)))
     capture = screen_grab(
         screen_cords[0],
         screen_cords[1],
@@ -326,7 +329,7 @@ def find_camera_buttons(h: int, w: int, window):
 
     imagesToProcess = [uppershelf, lowershelf]
     for image in imagesToProcess:
-        if check_color_single(image, COLORS["VIEW_CAMERA_BUTTON"]):
+        if check_color_single(image, Colors.COLOR_VIEWCAMERA):
             logging.debug(
                 f"View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
             )
@@ -347,56 +350,55 @@ def color_approx_eq_np(color1: tuple, color2: tuple, threshold=10) -> bool:
         bool: Whether or not the colors are approximately equal to eachother
     """
     # Get the absolute value of the difference between the arrays
-    diff = np.abs(np.array(color1) - np.array(color2))
-    # Check if within threshold
-    return np.all(diff <= threshold)
+    return np_allclose(color1, color2, atol=threshold)
 
 
-def check_color_single(image, color, threshold=7) -> bool:
+def check_color_single(image: Image, color, threshold=7) -> bool:
     logging.debug("check_color_single: called")
-    arr = np.array(image)
+    arr = np_array(image)
 
     # Iterate over the y-axis
     for i in range(arr.shape[0]):
         # Iterate over the x-axis
         for j in range(arr.shape[1]):
-            if color_approx_eq_np(arr[i, j], color, threshold):
+            col_to_compare = arr[i, j]
+            if color_approx_eq_np(col_to_compare, color, threshold):
                 logging.debug("check_color_single: colors similar, return True")
                 return True
     logging.debug("check_color_single: no similar colors found, returning False")
     return False
 
 
-def check_color_multiple(image, colors: list, threshold=7) -> bool:
+def check_color_multiple(image: Image, colors: list, threshold=7) -> bool:
     logging.debug("check_color_multiple: called")
-    arr = np.array(image)
+    arr = np_array(image)
 
     # Iterate over the y-axis
     for i in range(arr.shape[0]):
         # Iterate over the x-axis
         for j in range(arr.shape[1]):
             # Get the tuple from the element
-            r, g, b = arr[i, j]
+            col_to_compare = arr[i, j]
             for color in colors:
-                if color_approx_eq_np(arr[i, j], color, threshold):
+                if color_approx_eq_np(col_to_compare, color, threshold):
                     logging.debug("check_colored_pixels_np: colors similar, return True")
                     return True
     logging.debug("check_colored_pixels_np: no similar colors found, returning False")
     return False
 
 
-def check_color_percentage_single(image, color: tuple, compareThreshold=7, threshold=0.05) -> bool:
+def check_color_percentage_single(image: Image, color: tuple, compareThreshold=7, threshold=0.05) -> bool:
     logging.debug("check_color_percentage_single: called")
     matching_pixels = 0
-    arr = np.array(image)
+    arr = np_array(image)
 
     # Iterate over the y-axis
     for i in range(arr.shape[0]):
         # Iterate over the x-axis
         for j in range(arr.shape[1]):
             # Get the tuple from the element
-            r, g, b = arr[i, j]
-            if color_approx_eq_np((r, g, b), color, compareThreshold):
+            col_to_compare = arr[i, j]
+            if color_approx_eq_np(col_to_compare, color, compareThreshold):
                 matching_pixels += 1
             if matching_pixels / arr.size >= threshold:
                 logging.debug(f"check_color_percentage_single: matching pixels > {threshold * 10 ** 2}% found")
@@ -407,7 +409,7 @@ def check_color_percentage_single(image, color: tuple, compareThreshold=7, thres
     return False
 
 
-def find_exit_cam_button(w: int, bbox: list[int, int, int, int], window):
+def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
     logging.debug("find_exit_cam_button")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
@@ -429,11 +431,11 @@ def find_exit_cam_button(w: int, bbox: list[int, int, int, int], window):
     lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
     imagesToProcess = [lowershelf]
 
-    return all(check_color_single(image, COLORS["COLOR_CAMERA_EXIT"]) for image in imagesToProcess)
+    return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
 
 
 @check_able_to_run
-def send_zone_message(zone: str):
+def send_zone_message(zone: str) -> None:
     """Copy a Zone opening message to the user's clipboard and sound an audible tone
 
     Args:
@@ -485,4 +487,5 @@ if __name__ == "__main__":
         update_check()
     winsound.Beep(500, 200)
     logging.info("SG+ Successfully Initialized")
+
     keyboard_wait()
