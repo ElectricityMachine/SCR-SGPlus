@@ -1,36 +1,32 @@
 <h1 align="center">SCR: SG+</h1>
 
-<h1 align="center">
-   
+<h2 align="center">
+
    ![macro-beechley_1_2](https://user-images.githubusercontent.com/47489506/165611305-da7b72a5-1492-4db0-b37a-3ce81f1aad22.gif)
 
-</h1>
+</h2>
 
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, announce your signalling presence, or open a camera view with only one button press.
+SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, open a camera view, toggle rollback, or announce your signalling presence.
 
-### Will this get me demoted? Am I safe to use this?
-**There is nothing to indicate you will be demoted or banned for using this script.** The onus is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely. It is just to aid the signaller in their task of efficiently running their zone and keeping time. If you have had trouble with a member of staff as a result from using this script, **contact me immediately (scroll down) or open an issue.**
+### Will this get me demoted?
+**You will not be banned or demoted just from using this script.** The responsibility is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely, rather, it aims to speed up commonly performed actions. If you've encountered trouble with a member of staff while using this script, please [contact me as soon as possible](#contact-information), or open a new issue.
 
 ### Usage:
-- Hover over a signal and press 1, 2, or 3, corresponding to the aspect you wish to change the signal to.
-- Hover over a signal and press C to enter camera view. Once in camera view, press C again to exit.
+- Hover over a signal and:
+  - press 1, 2, or 3, corresponding to the desired signal aspect.
+  - press C to enter camera view. Once in camera view, press C again to exit.
+  - press R to toggle rollback.
 - Press F1 to enable or disable the script. You only need to do this if you are chatting or typing things to prevent false activations.
-- Use numpad 1-7 to copy zone opening messages to your clipboard
+- Use numpad 1-7 (1 is A, 2 is B, etc.) to copy zone opening messages to your clipboard.
 
 ### Features
-- Only one button press is needed to change a signal aspect or copy zone opening messages to your clipboard
-- Decreases setup and train clearing time significantly
-- Allows the signaller to focus on more important things rather than just clicking to change aspects
+- Only one button press is needed to change a signal aspect
 - Quickly get in and out of a camera view (signals only for now)
 - Toggle rollback on or off
+- Easily copy zone opening messages to your clipboard with the numpad
 - Audible warning if you try to chat or run commands with the macro enabled
-
-### Planned features:
-- TRTS Audio cue 
-- Station cameras
-- Auto terminus station setup
 
 ### Limitations:
 - Windows only
@@ -52,20 +48,34 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 
 ### **Installation**
 
-## Windows
-1. Download and install the latest Python3 installer from [Python Downloads Page](https://www.python.org/downloads/)
-   - IMPORTANT: Make sure to check the box during installation which adds Python to PATH. Labeled something like **Add Python 3.X to PATH**
-2. Download the latest release in the [Releases section of this repo](https://github.com/ElectricityMachine/SCR-SGPlus/releases/). Click on "Source Code (zip)"
+#### Binary (.exe file)
+1. Download the sgplus.zip from the [latest releases page](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest)
+2. Extract the zip to your desired location (right click > Extract All).
+3. Run **sgplus.exe**.
+**Note:** Some antiviruses may detect the program as malware. This is a false-positive, as such you may have to add an exclusion to your antivirus software for the program to run. Any binary attached to a release is the same as the one built automatically [here](https://github.com/ElectricityMachine/SCR-SGPlus/actions/workflows/build.yml)
+
+#### Source (running script directly)
+Note: This method is for those who wish to contribute to the project, for those who don't like the idea of running an exe file, or for those who like manual labour.
+1. Download and install the latest Python 3 installer from the [Python Downloads Page](https://www.python.org/downloads/)
+   - Make sure to check the box during installation which adds Python to PATH. Labeled something like **Add Python 3.X to PATH**
+2. Download the latest release in the [Releases section of this repo](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest). Click on "Source Code (zip)"
    - Note: If you want the development release with all the latest changes, press the green "Code" button on the main page of this repo and press "Download ZIP". The following instructions still apply.
-4. Extract the folder to your desired location. You can do this natively in Windows by opening the .zip folder and pressing "Extract all" at the top.
+3. Extract the folder to your desired location. You can do this natively in Windows by opening the .zip folder and pressing "Extract all" at the top.
    - Note: If you are updating from an older version, please delete the old version of the script before extracting the new version. Failure to do so may cause conflicts and bugs.
-5. Enter the folder where the script and images are stored, then in the Windows File Explorer address bar, type "cmd". A Command Prompt window should pop up. See the gif below for an example of how to do this. ![explorer_UNTq76MoQy](https://user-images.githubusercontent.com/47489506/181626707-6f58a2b6-e9e4-423e-9cb8-15d2add19cc7.gif)
+4. Run ``install.bat`` and answer the prompts.
+5. After the installation has completed, run ``start.bat`` to start the script. A console window will appear, a beep will sound, and the macro is now active.
 
-6. In that CMD window, run ``pip install -r requirements.txt``. This will download all the requirements for the script to function.
-7. After the installation has completed, run the ``start.bat`` batch file to start the script. A console window will appear, a beep will sound, and the macro is now active.
+### I've found an issue!
+Great! Please [open an issue](https://github.com/ElectricityMachine/SCR-SGPlus/issues/new) or contact me below.
 
-### License
-By using this script, you MUST adhere to the license terms in the LICENSE file.
+Some issues might be (but not limited to):
+- Script fails to run or install
+- Certain signals do not respond to the script when trying to change aspects or enter/exit camera view
+- Entering/exiting camera view or toggling rollback does not work
 
-### Contact information
-If you have issues or need to contact me, please reach me on Discord at ElectricityMachine (hashtag) One Seven Five Three. The Discord username is spelt this way to avoid scrapers and bots.
+##### License
+By using this script, you must adhere to the license terms in the LICENSE file.
+
+##### Contact information
+Discord: @electricity.machine
+ROBLOX: Electricity_Machine
