@@ -2,7 +2,7 @@
 
 
 ### Description
-SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, open a camera view, toggle rollback, or announce your signalling presence.
+SG+ is a macro script written in Python that streamlines your signalling experience by allowing you to change a signal aspect, open a camera view, toggle rollback, or announce your signalling presence with just one button press.
 
 ### Will this get me demoted?
 **You will not be banned or demoted just from using this script.** The responsibility is still on the signaller to signal trains in a safe and proper manner. It is not an exploit and does not automate signalling entirely, rather, it aims to speed up commonly performed actions. If you've encountered trouble with a member of staff while using this script, please [contact me as soon as possible](#contact-information), or open a new issue.
@@ -16,7 +16,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 - Use numpad 1-7 (1 is A, 2 is B, etc.) to copy zone opening messages to your clipboard.
 
 ### Features
-- Only one button press is needed to change a signal aspect
+- Speedily change signal aspects
 - Quickly get in and out of a camera view (signals only for now)
 - Toggle rollback on or off
 - Easily copy zone opening messages to your clipboard with the numpad
@@ -43,7 +43,7 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ### **Installation**
 
 #### Binary (.exe file)
-1. Download the sgplus.zip from the [latest releases page](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest)
+1. Download sgplus.zip from the [latest releases page](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest)
 2. Extract the zip to your desired location (right click > Extract All).
 3. Run **sgplus.exe**.
 **Note:** Some antiviruses may detect the program as malware. This is a false-positive, as such you may have to add an exclusion to your antivirus software for the program to run. Any binary attached to a release is the same as the one built automatically [here](https://github.com/ElectricityMachine/SCR-SGPlus/actions/workflows/build.yml)
@@ -62,7 +62,7 @@ Note: This method is for those who wish to contribute to the project, for those 
 ### I've found an issue!
 Great! Please [open an issue](https://github.com/ElectricityMachine/SCR-SGPlus/issues/new) or contact me below.
 
-Some issues might be (but not limited to):
+Some issues include (but are not limited to):
 - Script fails to run or install
 - Certain signals do not respond to the script when trying to change aspects or enter/exit camera view
 - Entering/exiting camera view or toggling rollback does not work
