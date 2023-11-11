@@ -26,13 +26,11 @@ from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
 from PIL.Image import frombytes, Image
-from requests import get as requests_get
+from requests import get as requests_get, exceptions as requests_exceptions
 
 VERSION = "v0.4.0"
 enabled = True
-signal_mouse_coords: (
-    tuple
-) = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
+signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
 one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
 logging.basicConfig(
     stream=sys.stdout,
@@ -45,19 +43,23 @@ def update_check() -> None:
     logging.debug("update_check: called")
     """Fetch the latest release version from the GitHub repo and inform the user if an update is available"""
     # TODO: Implement better version check functionality instead of just difference in strings
-    # TODO: Use async for this function somehow, so we don't block.
-    if not UPDATE_CHECK_ENABLED:
-        return
     URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
-    r = requests_get(url=URL)
-    data = r.json()
-    if VERSION != data["tag_name"]:
-        print(f"{colorama.Fore.RED}NOTICE: A new update is available for SG+!")
-        print(
-            "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
-        )
-        print('and follow the instructions under "Installation"')
-        print(colorama.Fore.WHITE)
+    try:
+        r = requests_get(url=URL)
+        data = r.json()
+        if VERSION != data["tag_name"]:
+            print(f"{colorama.Fore.RED}NOTICE: A new update is available for SG+!")
+            print(
+                "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
+            )
+            print('and follow the instructions under "Installation"')
+            print(colorama.Fore.WHITE)
+        else:
+            logging.info("No new updates found.")
+    except requests_exceptions.RequestException as e:
+        logging.error(f"update_check: RequestException occurred: {e}")
+        logging.error("Update check failed. Please ensure you have allowed sgplus.exe in your firewall.")
+        logging.info("Skipping update check because we errored...")
 
 
 def screen_grab(x: int, y: int, width: int, height: int):
@@ -140,9 +142,7 @@ def click_rollback() -> None:
         logging.debug("click_rollback: scan_for_dialog(exitcamera) returned true")
         return
     elif scan_for_dialog("signal", mousex, mousey):
-        logging.debug(
-            "click_rollback: scan_for_dialog(signal) returned true, pressing enter"
-        )
+        logging.debug("click_rollback: scan_for_dialog(signal) returned true, pressing enter")
         press_and_release("enter")
     else:
         logging.debug("return path in click_rollback")
@@ -156,15 +156,11 @@ def click_rollback() -> None:
     _y = bbox[1]
     window_width = bbox[2]
     window_height = bbox[3]
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(
-        window_width, window_height
-    )
+    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(window_width, window_height)
 
     rollback_x = zone_screen_width * 0.89955 + zone_screen_x
     rollback_y = 0.69518 * window_height
-    rollback_position = win32gui.ClientToScreen(
-        window, (int(rollback_x), int(rollback_y))
-    )
+    rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
 
     move_mouse(x=rollback_position[0], y=rollback_position[1], speed=1)
     mouse_click("left")
@@ -179,9 +175,7 @@ def click_camera() -> None:
     logging.debug("click_camera: called")
     global signal_mouse_coords
     if scan_for_dialog("exitcamera"):
-        logging.debug(
-            "click_camera: scan_for_dialog(exitcamera) returned true, pressing backspace twice"
-        )
+        logging.debug("click_camera: scan_for_dialog(exitcamera) returned true, pressing backspace twice")
         for _ in range(2):
             press_and_release("backspace")
         if signal_mouse_coords:
@@ -201,9 +195,7 @@ def click_camera() -> None:
         # sleep_frames(2)
         camera_y = 0.80137 if scan_for_dialog("viewcamera") == 0 else 0.92133
         x = "lower number" if camera_y == 0.80137 else "upper number"
-        logging.debug(
-            f"click_camera: uncontrolled scan_for_dialog true in click_camera with x-value of {x}"
-        )
+        logging.debug(f"click_camera: uncontrolled scan_for_dialog true in click_camera with x-value of {x}")
     else:
         logging.debug("click_camera: return none path in click_camera")
         return
@@ -242,9 +234,7 @@ def toggle_disable() -> None:
     global enabled
     logging.debug(f"toggle_disable called: enabled is {enabled}")
     enabled = not enabled
-    beep = threading.Thread(
-        target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100)
-    )
+    beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
 
 
@@ -279,9 +269,7 @@ def find_uncontrolled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
     dialogbox_y = math.floor(mousey - dialogbox_height)
 
-    capture = screen_grab(
-        dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2
-    ).convert("RGB")
+    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
     w, h = capture.size
     upper = capture.crop((0, 0, w, h / 2))
     lower = capture.crop((0, h / 2, w, h))
@@ -296,9 +284,7 @@ def find_uncontrolled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     for image in imagesToProcess:
         logging.debug("find_uncontrolled_sig_dialog: iterating images")
         if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE):
-            logging.debug(
-                "find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success"
-            )
+            logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
             return True
     logging.debug("find_uncontrolled_sig_dialog: return false path")
     return False
@@ -311,9 +297,7 @@ def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
     dialogbox_y = math.floor(mousey - dialogbox_height)
 
-    capture = screen_grab(
-        dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2
-    ).convert("RGB")
+    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
     w, h = capture.size
     upper = capture.crop((0, 0, w, h / 2))
     lower = capture.crop((0, h / 2, w, h))
@@ -341,9 +325,7 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     camerabutton_x = zone_screen_width * 0.79760 + zone_screen_x
     camerabutton_y = h * 0.80629
 
-    screen_cords = win32gui.ClientToScreen(
-        windowID, (int(camerabutton_x), int(camerabutton_y))
-    )
+    screen_cords = win32gui.ClientToScreen(windowID, (int(camerabutton_x), int(camerabutton_y)))
     capture = screen_grab(
         screen_cords[0],
         screen_cords[1],
@@ -408,17 +390,13 @@ def check_color_multiple(image: Image, colors: list, threshold=7) -> bool:
             col_to_compare = arr[i, j]
             for color in colors:
                 if color_approx_eq_np(col_to_compare, color, threshold):
-                    logging.debug(
-                        "check_colored_pixels_np: colors similar, return True"
-                    )
+                    logging.debug("check_colored_pixels_np: colors similar, return True")
                     return True
     logging.debug("check_colored_pixels_np: no similar colors found, returning False")
     return False
 
 
-def check_color_percentage_single(
-    image: Image, color: tuple, compareThreshold=7, threshold=0.05
-) -> bool:
+def check_color_percentage_single(image: Image, color: tuple, compareThreshold=7, threshold=0.05) -> bool:
     logging.debug("check_color_percentage_single: called")
     matching_pixels = 0
     arr = np_array(image)
@@ -432,9 +410,7 @@ def check_color_percentage_single(
             if color_approx_eq_np(col_to_compare, color, compareThreshold):
                 matching_pixels += 1
             if matching_pixels / arr.size >= threshold:
-                logging.debug(
-                    f"check_color_percentage_single: matching pixels > {threshold * 10 ** 2}% found"
-                )
+                logging.debug(f"check_color_percentage_single: matching pixels > {threshold * 10 ** 2}% found")
                 return True
     logging.debug(
         f"check_color_percentage_single: not enough white pixels found for array size. numpixels: {matching_pixels/arr.size}"
@@ -453,9 +429,7 @@ def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
     exit_camera_button_width = 50
     exit_camera_button_height = exit_camera_button_width
 
-    screen_cords = win32gui.ClientToScreen(
-        window, (int(exit_camera_button_x), int(exit_camera_button_y))
-    )
+    screen_cords = win32gui.ClientToScreen(window, (int(exit_camera_button_x), int(exit_camera_button_y)))
     capture = screen_grab(
         screen_cords[0],
         screen_cords[1],
@@ -466,9 +440,7 @@ def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
     lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
     imagesToProcess = [lowershelf]
 
-    return all(
-        check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess
-    )
+    return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
 
 
 @check_able_to_run
@@ -507,9 +479,7 @@ if __name__ == "__main__":
     add_hotkey(46, lambda: click_camera())  # C
     add_hotkey(59, lambda: toggle_disable())  # F1
     add_hotkey("R", lambda: click_rollback())  # R
-    add_hotkey(
-        "/", lambda: enabled_warning()
-    )  # / warning when opening chat while enabled
+    add_hotkey("/", lambda: enabled_warning())  # / warning when opening chat while enabled
     add_hotkey("`", lambda: enabled_warning())  # Command bar
     add_hotkey("'", lambda: enabled_warning())  # Command bar
     add_hotkey(79, lambda: send_zone_message("A"))  # Num 1
@@ -522,8 +492,10 @@ if __name__ == "__main__":
 
     colorama.init()
 
-    if UPDATE_CHECK_ENABLED:  # TODO: remove from update_check in favor of here
+    if UPDATE_CHECK_ENABLED:
         update_check()
+    else:
+        logging.info("Skipping update check...")
     winsound.Beep(500, 200)
     logging.info("SG+ Successfully Initialized")
 
