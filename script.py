@@ -1,5 +1,5 @@
-# ElectricityMachine
-# Version: 0.3.1-alpha
+# Made by ElectricityMachine
+# Version: 0.4.0
 # Major changes: Python 12 support, refactor
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
@@ -21,17 +21,18 @@ import pyperclip
 import win32gui
 import threading
 from numpy import array as np_array, allclose as np_allclose
-from settings import AVG_FPS, VERSION, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
+from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
 from PIL.Image import frombytes, Image
 from requests import get as requests_get
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if DEBUG_ENABLED else logging.INFO)
+VERSION = "v0.4.0"
 enabled = True
 signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
 one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if DEBUG_ENABLED else logging.INFO, format="%(levelname)s: %(message)s")
 
 
 def update_check() -> None:

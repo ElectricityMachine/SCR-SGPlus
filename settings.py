@@ -1,8 +1,7 @@
-VERSION = "v0.3.1-alpha"
-AVG_FPS = 60  # Set your average FPS here
+AVG_FPS = 45  # Set your average FPS here
 AVG_PING = 0  # Set your average ping here
-DEBUG_ENABLED = True  # If true, will enable debug prints if they're specified
-UPDATE_CHECK_ENABLED = False  # If true, will run check_for_update() on startup
+DEBUG_ENABLED = False  # If true, will enable debug logging and other facilities for debugging
+UPDATE_CHECK_ENABLED = True  # If true, will check for updates on startup
 
 
 class Colors:
