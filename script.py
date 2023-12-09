@@ -347,19 +347,22 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     return False
 
 
-def color_approx_eq_np(color1: tuple, color2: tuple, threshold=10) -> bool:
+def color_approx_eq_np(inputColor: tuple, colorToCompare: tuple, threshold=5) -> bool:
     """Check if a color is equal to another color within a given value
 
     Args:
-        color1 (tuple): First RGB color to check against
-        color2 (tuple): Second RGB color to check against
-        tolerance (int, optional): How many units of R, G, or B to tolerate. Defaults to 10.
+        inputColor (tuple): First RGB color to check against
+        colorToCompare (tuple): Second RGB color to check against
+        threshold (int, optional): How many units of R, G, or B to tolerate. Defaults to 5.
 
     Returns:
-        bool: Whether or not the colors are approximately equal to eachother
+        bool: Whether or not the colors are approximately equal to each other
     """
-    # Get the absolute value of the difference between the arrays
-    return np_allclose(color1, color2, atol=threshold)
+    # Calculate the absolute difference between each color component
+    diff = [abs(c1 - c2) for c1, c2 in zip(inputColor, colorToCompare)]
+
+    # Check if the maximum difference is within the threshold
+    return max(diff) <= threshold
 
 
 def check_color_single(image: Image, color, threshold=7) -> bool:
