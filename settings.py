@@ -1,6 +1,6 @@
-AVG_FPS = 30  # Set your average FPS here (default 45)
+AVG_FPS = 45  # Set your average FPS here (default 45)
 AVG_PING = 0  # Set your average ping here (default 0)
-DEBUG_ENABLED = True  # If true, will enable debug logging
+DEBUG_ENABLED = False  # If true, will enable debug logging
 UPDATE_CHECK_ENABLED = True  # If true, will check for updates on startup
 
 
