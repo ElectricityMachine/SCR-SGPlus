@@ -161,11 +161,11 @@ def click_rollback() -> None:
     rollback_x = zone_screen_width * 0.89955 + zone_screen_x
     rollback_y = 0.69518 * window_height
     rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
-
-    move_mouse(x=rollback_position[0], y=rollback_position[1], speed=1)
+    move_mouse(x=rollback_position[0], y=rollback_position[1], speed=2)
     mouse_click("left")
-    sleep_frames(3)
-    press_and_release("backspace, backspace")
+    sleep_frames(1)
+    press_and_release("backspace")
+    press_and_release("backspace")
     move_mouse(mousex, mousey, speed=0)
     return
 
