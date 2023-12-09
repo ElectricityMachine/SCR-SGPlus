@@ -1,6 +1,6 @@
-AVG_FPS = 45  # Set your average FPS here (default 45)
+AVG_FPS = 30  # Set your average FPS here (default 45)
 AVG_PING = 0  # Set your average ping here (default 0)
-DEBUG_ENABLED = False  # If true, will enable debug logging
+DEBUG_ENABLED = True  # If true, will enable debug logging
 UPDATE_CHECK_ENABLED = True  # If true, will check for updates on startup
 
 
@@ -17,4 +17,7 @@ class Colors:
     COLOR_MENU = (194, 186, 189)  # Side menu main color
     COLOR_CAMERA_EXIT = (255, 255, 255)  # White X on the close button in camera view
     COLOR_DIALOG_WHITE = (227, 218, 218)  # White elements in the signal dialog
-    COLOR_VIEWCAMERA = (147, 0, 207)  # Purple View Camera button
+    COLOR_VIEWCAMERA = [
+        (147, 0, 207), # Non-hovered
+        (89, 0, 152), # Hovered
+    ]

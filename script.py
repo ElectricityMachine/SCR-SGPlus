@@ -9,7 +9,7 @@
 import math
 import time
 from typing import Literal
-
+import cv2
 from collections.abc import Callable
 import winsound
 import logging
@@ -20,7 +20,7 @@ import mouse
 import pyperclip
 import win32gui
 import threading
-from numpy import array as np_array, allclose as np_allclose
+from numpy import array as np_array
 from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
@@ -95,7 +95,7 @@ def move_mouse(x: int, y: int, speed=1):
 
 
 def sleep_frames(frames: int, minwait=0) -> None:
-    logging.debug(f"Sleeping for {frames} frame(s)")
+    logging.debug(f"sleep_frames: Sleeping for {frames} frame(s)")
     time.sleep(max((frames * one_frame_time), minwait))
 
 
@@ -191,9 +191,22 @@ def click_camera() -> None:
         camera_y = 0.92133
     elif scan_for_dialog("uncontrolled"):
         logging.debug("click_camera: uncontrolled signal found in click_camera")
+        window = win32gui.GetForegroundWindow()
+        rect = win32gui.GetClientRect(window)
+
+        bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
+        _x = bbox[0]
+        _y = bbox[1]
+        w = bbox[2]
+        h = bbox[3]
         press_and_release("enter")
-        # sleep_frames(2)
-        camera_y = 0.80137 if scan_for_dialog("viewcamera") == 0 else 0.92133
+        sleep_frames(2)
+        result = find_camera_buttons(h, w, window)
+        logging.debug(f"click_camera: result is {result}")
+        if result is False:
+            logging.debug("click_camera: returning because result is False, no dialog found")
+            return
+        camera_y = 0.80137 if result == 1 else 0.92133
         x = "lower number" if camera_y == 0.80137 else "upper number"
         logging.debug(f"click_camera: uncontrolled scan_for_dialog true in click_camera with x-value of {x}")
     else:
@@ -238,9 +251,12 @@ def toggle_disable() -> None:
     beep.start()
 
 
+# TODO: Swap variables "h, w" for "w, h" for readability
+
+
 def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
     logging.debug("scan_for_dialog: called")
-    if mousex is mousey and mousex == 0:
+    if mousex == mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
@@ -253,49 +269,129 @@ def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
     if type == "exitcamera":
         return find_exit_cam_button(w, bbox, window)
     elif type == "signal":
-        return find_controlled_sig_dialog(h, mousex, mousey)
+        return find_controlled_sig_dialog(w, h, mousex, mousey)
     elif type == "uncontrolled":
-        return find_uncontrolled_sig_dialog(h, mousex, mousey)
+        return find_uncontrolled_sig_dialog(h, w, mousex, mousey)
     elif type == "viewcamera":
         return find_camera_buttons(h, w, window)
 
     return False
 
+# TODO: Fix SG+ not working at different resolutions
 
-def find_uncontrolled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
+def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     dialogbox_height = math.ceil(h * 0.125)
+    print("height is", h)
     dialogbox_width = math.ceil(dialogbox_height * 2)
+    print("Mousex is ", mousex)
+    print("Mousey is ", mousey)
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
     dialogbox_y = math.floor(mousey - dialogbox_height)
+    print(dialogbox_x)
+    print(dialogbox_y)
 
+    dialogbox_left_bound = dialogbox_x
+    dialogbox_right_bound = dialogbox_x + dialogbox_width
+
+    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_right_bound = zone_screen_x + zone_screen_width
+    zone_screen_left_bound = zone_screen_x
+    dialogbox_left_bound = dialogbox_x
+    if zone_screen_right_bound < dialogbox_right_bound:
+        print("LESSTHAN")
+        print(zone_screen_right_bound)
+        print(dialogbox_right_bound)
+        print(abs(zone_screen_right_bound - dialogbox_right_bound))
+        print(dialogbox_x)
+        dialogbox_x -= abs(zone_screen_right_bound - dialogbox_right_bound)
+    elif zone_screen_left_bound > dialogbox_left_bound:
+        dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
+    zone_screen_y = math.floor(h * 0.0098328416912488)
+    window = win32gui.GetForegroundWindow()
+    rect = win32gui.GetClientRect(window)
+    print(rect)
+    screen_x, screen_y = win32gui.ClientToScreen(window, (rect[0], rect[1]))
+    screen_w, screen_h = rect[2], rect[3]
+    print(screen_x, screen_y, screen_w, screen_h)
+    screen = screen_grab(
+        screen_x,
+        screen_y,
+        screen_w,
+        screen_h,
+    )
     capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
+
+
     w, h = capture.size
-    upper = capture.crop((0, 0, w, h / 2))
-    lower = capture.crop((0, h / 2, w, h))
-    upperw, upperh = upper.size
-    width, height = lower.size
-    lowershelf = lower.crop((0, height * 0.33, width / 2, height * 1 / 3 + 2))
-    upper = capture.crop((0, 0, w, h / 2))
-    upperw, upperh = upper.size
-    uppershelf = upper.crop((0, upperh * 0.1, upperw / 2, upperh * 0.1 + 2))
-    imagesToProcess = [lowershelf, uppershelf]
+    upper_x = 0
+    upper_y = h * 0.05
+    upper = capture.crop((upper_x, upper_y, upper_x + w, upper_y + 4))
+    lower_x = 0
+    lower_y = h * 0.65
+    lower = capture.crop((lower_x, lower_y, lower_x + w, lower_y + 4))
+    boundbox_img = cv2.rectangle(
+        np_array(screen),
+        (zone_screen_x, zone_screen_y),
+        (zone_screen_x + zone_screen_width, zone_screen_y + zone_screen_height),
+        (255, 0, 0),
+        2,
+    )
+    # TODO: Draw bounding box over image (maybe make separate function for all of this stuff)
+
+    dialogbox_img = cv2.rectangle(
+        np_array(screen),
+        (dialogbox_x, dialogbox_y),
+        (dialogbox_x + dialogbox_width, dialogbox_y + dialogbox_height),
+        (150, 255, 0),
+        2,
+    )
+
+    cv2.imwrite("zonescreen.png", cv2.cvtColor(boundbox_img, cv2.COLOR_BGR2RGB))
+    cv2.imwrite("dialogbox.png", cv2.cvtColor(dialogbox_img, cv2.COLOR_BGR2RGB))
+
+    imagesToProcess = [lower, upper]
+    capture.save("capture_uncontrolled.png")
+    lower.save("lower_uncontrolled.png")
+    upper.save("upper_uncontrolled.png")
 
     for image in imagesToProcess:
-        logging.debug("find_uncontrolled_sig_dialog: iterating images")
+        #logging.debug("find_uncontrolled_sig_dialog: iterating images")
         if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE):
-            logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
+            #logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
             return True
     logging.debug("find_uncontrolled_sig_dialog: return false path")
     return False
 
 
-def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
+# What if I offset the capture based on where the mouse is? Example: We already know where the edge of the zone screen is.
+# If the distance from our x-coordinate is too close to the right, for example,
+
+
+def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool:
     logging.debug("find_controlled_sig: called")
+    print(h)
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
     dialogbox_y = math.floor(mousey - dialogbox_height)
+
+    dialogbox_left_bound = dialogbox_x
+    dialogbox_right_bound = dialogbox_x + dialogbox_width
+
+    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_right_bound = zone_screen_x + zone_screen_width
+    zone_screen_left_bound = zone_screen_x
+    dialogbox_left_bound = dialogbox_x
+    if zone_screen_right_bound < dialogbox_right_bound:
+        print("LESSTHAN")
+        print(zone_screen_right_bound)
+        print(dialogbox_right_bound)
+        print(abs(zone_screen_right_bound - dialogbox_right_bound))
+        print(dialogbox_x)
+        dialogbox_x -= abs(zone_screen_right_bound - dialogbox_right_bound)
+    elif zone_screen_left_bound > dialogbox_left_bound:
+        dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
 
     capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
     w, h = capture.size
@@ -306,6 +402,8 @@ def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
     lowershelf = lower.crop((0, height * 0.66, width, height * 0.66 + 3))
     uppershelf = upper.crop((0, upperh * 0.4, upperw, upperh * 0.4 + 2))
     imagesToProcess = [lowershelf, uppershelf]
+    uppershelf.save("uppershelf.png")
+    lowershelf.save("lowershelf.png")
     logging.debug("find_controlled_sig_dialog: made it to generator")
     result = any(
         check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE, threshold=0.01)
@@ -317,13 +415,13 @@ def find_controlled_sig_dialog(h: int, mousex: int, mousey: int) -> bool:
 
 
 def find_camera_buttons(h: int, w: int, windowID: int):
-    logging.debug("find_camera_button: called")
+    logging.debug("find_camera_buttons: called")
     zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
 
     camerabutton_height = math.ceil(h * 0.125 * 0.375)
     camerabutton_width = math.ceil(camerabutton_height * 2 / 0.375)
-    camerabutton_x = zone_screen_width * 0.79760 + zone_screen_x
-    camerabutton_y = h * 0.80629
+    camerabutton_x = zone_screen_width * 0.8 + zone_screen_x
+    camerabutton_y = h * 0.82
 
     screen_cords = win32gui.ClientToScreen(windowID, (int(camerabutton_x), int(camerabutton_y)))
     capture = screen_grab(
@@ -333,18 +431,47 @@ def find_camera_buttons(h: int, w: int, windowID: int):
         camerabutton_height * 2,
     ).convert("RGB")
     width, height = capture.size
-    uppershelf = capture.crop((0, 0, width, 3))
-    lowershelf = capture.crop((0, height * 0.94, width, height))
+    uppershelf = capture.crop((0, 0, width * 0.1, height / 4))
+    lowershelf = capture.crop((0, height / 2.5, width * 0.1, height))
 
-    imagesToProcess = [uppershelf, lowershelf]
+    t1 = time.perf_counter()
+    imagesToProcess = [lowershelf, uppershelf]
     for image in imagesToProcess:
-        if check_color_single(image, Colors.COLOR_VIEWCAMERA):
+        if check_color_multiple(image, Colors.COLOR_VIEWCAMERA):
             logging.debug(
-                f"View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
+                f"find_camera_buttons: View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
             )
+            print("Time taken")
+            print(time.perf_counter() - t1)
             return 0 if image == imagesToProcess[0] else 1
     logging.debug("find_camera_buttons: none found")
     return False
+
+
+def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
+    logging.debug("find_exit_cam_button")
+    camera_controls_width = 283
+    camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
+
+    y = bbox[1]
+    exit_camera_button_y = 85 + y
+    exit_camera_button_x = 0.91166 * camera_controls_width + camera_controls_x - 5
+    exit_camera_button_width = 50
+    exit_camera_button_height = exit_camera_button_width
+
+    screen_cords = win32gui.ClientToScreen(window, (int(exit_camera_button_x), int(exit_camera_button_y)))
+    capture = screen_grab(
+        screen_cords[0],
+        screen_cords[1],
+        exit_camera_button_width,
+        exit_camera_button_height,
+    ).convert("RGB")
+    width, height = capture.size
+    lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
+    imagesToProcess = [lowershelf]
+    lowershelf.save("exitcamera.png")
+
+    return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
 
 
 def color_approx_eq_np(inputColor: tuple, colorToCompare: tuple, threshold=5) -> bool:
@@ -366,7 +493,9 @@ def color_approx_eq_np(inputColor: tuple, colorToCompare: tuple, threshold=5) ->
 
 
 def check_color_single(image: Image, color, threshold=7) -> bool:
+    start_time = time.perf_counter()
     logging.debug("check_color_single: called")
+    image.save("color.png")
     arr = np_array(image)
 
     # Iterate over the y-axis
@@ -374,8 +503,10 @@ def check_color_single(image: Image, color, threshold=7) -> bool:
         # Iterate over the x-axis
         for j in range(arr.shape[1]):
             col_to_compare = arr[i, j]
+            # logging.debug(f"check_color_single: col_to_compare is {col_to_compare}")
             if color_approx_eq_np(col_to_compare, color, threshold):
                 logging.debug("check_color_single: colors similar, return True")
+                logging.debug(f"check_color_single: Time taken was {time.perf_counter() - start_time}")
                 return True
     logging.debug("check_color_single: no similar colors found, returning False")
     return False
@@ -421,31 +552,6 @@ def check_color_percentage_single(image: Image, color: tuple, compareThreshold=7
     return False
 
 
-def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
-    logging.debug("find_exit_cam_button")
-    camera_controls_width = 283
-    camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
-
-    y = bbox[1]
-    exit_camera_button_y = 85 + y
-    exit_camera_button_x = 0.91166 * camera_controls_width + camera_controls_x - 5
-    exit_camera_button_width = 50
-    exit_camera_button_height = exit_camera_button_width
-
-    screen_cords = win32gui.ClientToScreen(window, (int(exit_camera_button_x), int(exit_camera_button_y)))
-    capture = screen_grab(
-        screen_cords[0],
-        screen_cords[1],
-        exit_camera_button_width,
-        exit_camera_button_height,
-    ).convert("RGB")
-    width, height = capture.size
-    lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
-    imagesToProcess = [lowershelf]
-
-    return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
-
-
 @check_able_to_run
 def send_zone_message(zone: str) -> None:
     """Copy a Zone opening message to the user's clipboard and sound an audible tone
@@ -479,7 +585,7 @@ if __name__ == "__main__":
     add_hotkey(2, lambda: click_signal("1"))  # 1
     add_hotkey(3, lambda: click_signal("2"))  # 2
     add_hotkey(4, lambda: click_signal("3"))  # 3
-    add_hotkey(46, lambda: click_camera())  # C
+    add_hotkey(46, lambda: scan_for_dialog("uncontrolled"))  # C
     add_hotkey(59, lambda: toggle_disable())  # F1
     add_hotkey("R", lambda: click_rollback())  # R
     add_hotkey("/", lambda: enabled_warning())  # / warning when opening chat while enabled
