@@ -2,7 +2,7 @@ colorama==0.4.6
 keyboard==0.13.5
 mouse==0.7.1
 mss==9.0.1
-numpy==1.26.1
+numpy==1.26.2
 Pillow==10.1.0
 PyAutoIt==0.6.5
 pyperclip==1.8.2
