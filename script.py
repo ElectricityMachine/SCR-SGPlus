@@ -258,9 +258,6 @@ def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
     return False
 
 
-# TODO: Fix SG+ not working at different resolutions
-
-
 def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     dialogbox_height = math.ceil(h * 0.125)
@@ -358,7 +355,6 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     uppershelf = capture.crop((0, 0, width * 0.1, height / 4))
     lowershelf = capture.crop((0, height / 2.5, width * 0.1, height))
 
-    t1 = time.perf_counter()
     imagesToProcess = [lowershelf, uppershelf]
     for image in imagesToProcess:
         if check_color_multiple(image, Colors.COLOR_VIEWCAMERA):
