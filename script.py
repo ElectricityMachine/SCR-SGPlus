@@ -18,9 +18,7 @@ import colorama
 import mouse
 import pyperclip
 import win32gui
-import threading
-from numpy import array as np_array
-from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
+from update_checker import check_for_updates
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
@@ -36,29 +34,6 @@ logging.basicConfig(
     level=logging.DEBUG if DEBUG_ENABLED else logging.INFO,
     format="%(levelname)s: %(message)s",
 )
-
-
-def update_check() -> None:
-    logging.debug("update_check: called")
-    """Fetch the latest release version from the GitHub repo and inform the user if an update is available"""
-    # TODO: Implement better version check functionality instead of just difference in strings
-    URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
-    try:
-        r = requests_get(url=URL)
-        data = r.json()
-        if VERSION != data["tag_name"]:
-            print(f"{colorama.Fore.RED}NOTICE: A new update is available for SG+!")
-            print(
-                "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
-            )
-            print('and follow the instructions under "Installation"')
-            print(colorama.Fore.WHITE)
-        else:
-            logging.info("No new updates found.")
-    except requests_exceptions.RequestException as e:
-        logging.error(f"update_check: RequestException occurred: {e}")
-        logging.error("Update check failed. Please ensure you have allowed sgplus.exe in your firewall.")
-        logging.info("Skipping update check because we errored...")
 
 
 def screen_grab(x: int, y: int, width: int, height: int):
@@ -542,9 +517,9 @@ if __name__ == "__main__":
     colorama.init()
 
     if UPDATE_CHECK_ENABLED:
-        update_check()
+        check_for_updates()
     else:
-        logging.info("Skipping update check...")
+        logging.info("Skipping update check")
     winsound.Beep(500, 200)
     logging.info("SG+ Successfully Initialized")
 
