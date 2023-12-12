@@ -54,7 +54,7 @@ def check_for_updates() -> None:
     """Fetch the latest release version from the GitHub repo and inform the user if an update is available"""
     URL = "https://api.github.com/repos/ElectricityMachine/SCR-SGPlus/releases/latest"
     try:
-        r = requests_get(url=URL)
+        r = requests_get(url=URL, timeout=10)
         data = r.json()
         tag = coerce(data["tag_name"])
         our_tag = coerce(VERSION)
