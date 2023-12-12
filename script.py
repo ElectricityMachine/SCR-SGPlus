@@ -268,7 +268,9 @@ def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bo
     dialogbox_left_bound = dialogbox_x
     dialogbox_right_bound = dialogbox_x + dialogbox_width
 
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_height, zone_screen_width, zsx, zsy = calculate_zone_screen(w, h)
+    window = win32gui.GetForegroundWindow()
+    zone_screen_x, zone_screen_y = win32gui.ClientToScreen(window, (zsx, zsy))
     zone_screen_right_bound = zone_screen_x + zone_screen_width
     zone_screen_left_bound = zone_screen_x
     dialogbox_left_bound = dialogbox_x
@@ -280,9 +282,9 @@ def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bo
 
     capture_width, capture_height = capture.size
     upper_y = capture_height * 0.05
-    upper = capture.crop((0, upper_y, 0 + capture_width, upper_y + 4))
+    upper = capture.crop((0, upper_y, 0 + capture_width / 2, upper_y + 4))
     lower_y = capture_height * 0.65
-    lower = capture.crop((0, lower_y, 0 + w, lower_y + 4))
+    lower = capture.crop((0, lower_y, 0 + capture_width / 2, lower_y + 4))
 
     imagesToProcess = [lower, upper]
     for image in imagesToProcess:
@@ -337,7 +339,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
 
 def find_camera_buttons(h: int, w: int, windowID: int):
     logging.debug("find_camera_buttons: called")
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
     camerabutton_height = math.ceil(h * 0.125 * 0.375)
     camerabutton_width = math.ceil(camerabutton_height * 2 / 0.375)
