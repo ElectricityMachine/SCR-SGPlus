@@ -6,14 +6,15 @@
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
 # Limitations: Windows only, only works on primary monitor
 
-import math
-import time
-from typing import Literal
-from collections.abc import Callable
-import winsound
 import logging
-import autoit
+import math
 import sys
+import threading
+import time
+import winsound
+from collections.abc import Callable
+from typing import Literal
+
 import colorama
 import mouse
 import pyperclip
@@ -22,10 +23,12 @@ from update_checker import check_for_updates
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
-from PIL.Image import frombytes, Image
-from requests import get as requests_get, exceptions as requests_exceptions
+from numpy import array as np_array
+from PIL.Image import Image, frombytes
 
-VERSION = "v0.4.0"
+import autoit
+from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
+
 enabled = True
 signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
 one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
@@ -130,7 +133,9 @@ def click_rollback() -> None:
     _y = bbox[1]
     window_width = bbox[2]
     window_height = bbox[3]
-    zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(window_width, window_height)
+    zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(
+        window_width, window_height
+    )
 
     rollback_x = zone_screen_width * 0.89955 + zone_screen_x
     rollback_y = 0.69518 * window_height
