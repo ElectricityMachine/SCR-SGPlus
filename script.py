@@ -155,7 +155,7 @@ def click_rollback() -> None:
     _y = bbox[1]
     window_width = bbox[2]
     window_height = bbox[3]
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(window_width, window_height)
+    zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(window_width, window_height)
 
     rollback_x = zone_screen_width * 0.89955 + zone_screen_x
     rollback_y = 0.69518 * window_height
@@ -221,7 +221,7 @@ def click_camera() -> None:
     w = bbox[2]
     h = bbox[3]
 
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
     camera_x = zone_screen_width * 0.89414 + zone_screen_x
     camera_y = camera_y * h
@@ -239,7 +239,8 @@ def calculate_zone_screen(window_width: int, window_height: int) -> tuple:
     zone_screen_height = math.ceil(ZONE_SCREEN_HEIGHT_RATIO * window_height)
     zone_screen_width = math.ceil(zone_screen_height * ZONE_SCREEN_WIDTH_RATIO)
     zone_screen_x = math.ceil(window_width / 2 - zone_screen_width / 2)
-    return zone_screen_height, zone_screen_width, zone_screen_x
+    zone_screen_y = math.floor(window_height * 0.0098328416912488)
+    return zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y
 
 
 def toggle_disable() -> None:
@@ -326,7 +327,9 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
     dialogbox_left_bound = dialogbox_x
     dialogbox_right_bound = dialogbox_x + dialogbox_width
 
-    zone_screen_height, zone_screen_width, zone_screen_x = calculate_zone_screen(w, h)
+    zone_screen_height, zone_screen_width, zsx, zsy = calculate_zone_screen(w, h)
+    window = win32gui.GetForegroundWindow()
+    zone_screen_x, zone_screen_y = win32gui.ClientToScreen(window, (zsx, zsy))
     zone_screen_right_bound = zone_screen_x + zone_screen_width
     zone_screen_left_bound = zone_screen_x
     dialogbox_left_bound = dialogbox_x
@@ -351,6 +354,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
         for image in imagesToProcess
     )  # this doesn't run if check for white pixels is false. must change TODO
     logging.debug(f"find_controlled_sig_dialog: result: {result}")
+
     return result
 
 
