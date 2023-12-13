@@ -26,7 +26,7 @@ from numpy import array as np_array
 from PIL.Image import Image, frombytes
 
 import autoit
-from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
+from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, VERSION, Colors
 from update_checker import check_for_updates
 
 enabled = True
@@ -524,6 +524,6 @@ if __name__ == "__main__":
     else:
         logging.info("Skipping update check")
     winsound.Beep(500, 200)
-    logging.info("SG+ Successfully Initialized")
+    logging.info(f"SG+ {VERSION} Successfully Initialized")
 
     keyboard_wait()
