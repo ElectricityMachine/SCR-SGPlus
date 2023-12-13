@@ -1,23 +1,30 @@
 name: Build binary
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-    build:
-        name: Build binary
-        runs-on: "windows-latest"
-        strategy:
-          fail-fast: false
-          matrix:
-            os: ['windows-latest']
-        steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-            python-version: 3.12
-            cache: 'pip'
-        - run: pip install -r requirements.txt pyinstaller
-        - run: pyinstaller script.py --name sgplus --noconfirm --onefile --add-binary "autoit\AutoItX3_x64.dll;.\autoit\lib" --hidden-import "mouse"
-        - uses: actions/upload-artifact@v3
-          with:
-            path: dist/sgplus.exe
+  build:
+    name: Build binary
+    runs-on: "windows-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest']
+
+    steps:
+    - name: Install UPX
+      uses: crazy-max/ghaction-upx@v3
+      with:
+        install-only: true
+    - name: UPX version
+      run: upx --version
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+        cache: 'pip'
+    - run: pip install -r requirements.txt pyinstaller
+    - run: pyinstaller script.py --name sgplus --noconfirm --onefile --add-binary "autoit\AutoItX3_x64.dll;.\autoit\lib"
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/sgplus.exe
