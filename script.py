@@ -8,7 +8,7 @@
 
 import logging
 import math
-import sys
+mport sys
 import threading
 import time
 import winsound
