@@ -7,7 +7,7 @@
 # Limitations: Windows only, only works on primary monitor
 
 import logging
-import math
+mport math
 mport sys
 import threading
 import time
