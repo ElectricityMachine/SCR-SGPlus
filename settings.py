@@ -19,6 +19,6 @@ class Colors:
     COLOR_CAMERA_EXIT = (255, 255, 255)  # White X on the close button in camera view
     COLOR_DIALOG_WHITE = (227, 218, 218)  # White elements in the signal dialog
     COLOR_VIEWCAMERA = [
-        (147, 0, 207), # Non-hovered
-        (89, 0, 152), # Hovered
+        (147, 0, 207),  # Non-hovered
+        (89, 0, 152),  # Hovered
     ]

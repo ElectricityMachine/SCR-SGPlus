@@ -19,7 +19,6 @@ import colorama
 import mouse
 import pyperclip
 import win32gui
-from update_checker import check_for_updates
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
 from mss import mss
@@ -28,6 +27,7 @@ from PIL.Image import Image, frombytes
 
 import autoit
 from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, Colors
+from update_checker import check_for_updates
 
 enabled = True
 signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
