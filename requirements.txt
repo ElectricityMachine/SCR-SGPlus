@@ -1,11 +1,28 @@
+certifi==2023.11.17
+    # via requests
+charset-normalizer==3.3.2
+    # via requests
 colorama==0.4.6
+    # via -r requirements.txt
+idna==3.6
+    # via requests
 keyboard==0.13.5
+    # via -r requirements.txt
 mouse==0.7.1
+    # via -r requirements.txt
 mss==9.0.1
+    # via -r requirements.txt
 numpy==1.26.2
-Pillow==10.1.0
-PyAutoIt==0.6.5
+    # via -r requirements.txt
+pillow==10.1.0
+    # via -r requirements.txt
 pyperclip==1.8.2
+    # via -r requirements.txt
 pywin32==306
+    # via -r requirements.txt
 requests==2.31.0
+    # via -r requirements.txt
+semver==3.0.2
+    # via -r requirements.txt
 urllib3==2.1.0
+    # via requests
