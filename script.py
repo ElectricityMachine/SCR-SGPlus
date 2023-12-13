@@ -7,8 +7,8 @@
 # Limitations: Windows only, only works on primary monitor
 
 import logging
-mport math
-mport sys
+import math
+import sys
 import threading
 import time
 import winsound
