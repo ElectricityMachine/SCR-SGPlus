@@ -13,7 +13,6 @@ import threading
 import time
 import winsound
 from collections.abc import Callable
-from typing import Literal
 
 import colorama
 import mouse
@@ -26,12 +25,11 @@ from numpy import array as np_array
 from PIL.Image import Image, frombytes
 
 import autoit
-from settings import AVG_FPS, AVG_PING, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, VERSION, Colors
+from settings import AVG_FPS, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, VERSION, Colors
 from update_checker import check_for_updates
 
 enabled = True
 signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
-one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG if DEBUG_ENABLED else logging.INFO,
@@ -58,13 +56,7 @@ def screen_grab(x: int, y: int, width: int, height: int):
         lower = y + height
         bbox = (math.ceil(left), math.ceil(top), math.ceil(right), math.ceil(lower))
         im = sct.grab(bbox)
-        # Convert to PIL image for compatibility
         return frombytes("RGB", im.size, im.bgra, "raw", "BGRX")
-
-
-def mouse_click(button: Literal["left", "right"]) -> None:
-    mouse.press(button)
-    mouse.release(button)
 
 
 def move_mouse(x: int, y: int, speed=1):
@@ -73,6 +65,7 @@ def move_mouse(x: int, y: int, speed=1):
 
 def sleep_frames(frames: int, minwait=0) -> None:
     logging.debug(f"sleep_frames: Sleeping for {frames} frame(s)")
+    one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
     time.sleep(max((frames * one_frame_time), minwait))
 
 
@@ -99,13 +92,13 @@ def check_able_to_run(callback: Callable) -> None | Callable:
 def click_signal(sig: str) -> None:
     logging.debug("click_signal: called")
     coord = mouse.get_position()
-    mouse_click("left")
-    time.sleep(one_frame_time * 2)
-    if scan_for_dialog("signal", coord[0], coord[1]):
+    mouse.click("left")
+    sleep_frames(2)
+    result, image = scan_for_dialog("signal", coord[0], coord[1])
+    if result:
         logging.debug("click_signal: scan_for_dialog returned true")
-        time.sleep(one_frame_time * 3)
+        sleep_frames(3)
         press_and_release(sig)
-        time.sleep(AVG_PING / 4_000)
         press_and_release("backspace")
 
 
@@ -113,12 +106,13 @@ def click_signal(sig: str) -> None:
 def click_rollback() -> None:
     logging.debug("click_rollback: called")
     mousex, mousey = mouse.get_position()
-    mouse_click("left")
+    mouse.click("left")
     sleep_frames(2)
     if scan_for_dialog("exitcamera"):
         logging.debug("click_rollback: scan_for_dialog(exitcamera) returned true")
         return
-    elif scan_for_dialog("signal", mousex, mousey):
+    result, image = scan_for_dialog("signal", mousex, mousey)
+    if result:
         logging.debug("click_rollback: scan_for_dialog(signal) returned true, pressing enter")
         press_and_release("enter")
     else:
@@ -137,11 +131,15 @@ def click_rollback() -> None:
         window_width, window_height
     )
 
-    rollback_x = zone_screen_width * 0.89955 + zone_screen_x
-    rollback_y = 0.69518 * window_height
-    rollback_position = win32gui.ClientToScreen(window, (int(rollback_x), int(rollback_y)))
+    rollback_x_edge = int(zone_screen_width * 0.795 + zone_screen_x)
+    rollback_x = int(zone_screen_width * 0.80 + zone_screen_x)
+    rollback_y = int(0.69518 * window_height)
+    rollback_edge_position = win32gui.ClientToScreen(window, (rollback_x_edge, rollback_y))
+    rollback_position = win32gui.ClientToScreen(window, (rollback_x, rollback_y))
+    move_mouse(x=rollback_edge_position[0], y=rollback_position[1], speed=0)
     move_mouse(x=rollback_position[0], y=rollback_position[1], speed=2)
-    mouse_click("left")
+
+    mouse.click("left")
     sleep_frames(1)
     press_and_release("backspace")
     press_and_release("backspace")
@@ -156,18 +154,17 @@ def click_camera() -> None:
 
     if scan_for_dialog("exitcamera"):
         logging.debug("click_camera: scan_for_dialog(exitcamera) returned true, pressing backspace twice")
-        for _ in range(2):
-            press_and_release("backspace")
+        press_and_release("backspace")
+        press_and_release("backspace")
         if signal_mouse_coords:
             move_mouse(signal_mouse_coords[0], signal_mouse_coords[1], speed=1)
         return
     logging.debug("click_camera: exitcamera dialog not found, executing main body")
     signal_mouse_coords = mouse.get_position()
-    mouse_click("left")
+    mouse.click("left")
     sleep_frames(2)
     result, dialogbox_image = scan_for_dialog("signal")
     if result:
-        # if scan_for_dialog("signal"):
         logging.debug("click_camera: signal scan_for_dialog found")
         press_and_release("enter")
         camera_y = 0.92133
@@ -213,9 +210,8 @@ def click_camera() -> None:
     camera_position = win32gui.ClientToScreen(window, (camera_x, camera_y))
 
     move_mouse(x=camera_middle_position[0], y=camera_position[1], speed=0)
-    # sleep_frames(10, 0.1)
     move_mouse(x=camera_position[0], y=camera_position[1], speed=2)
-    mouse_click("left")
+    mouse.click("left")
     return
 
 
@@ -365,13 +361,13 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     uppershelf = capture.crop((0, 0, width * 0.1, height / 4))
     lowershelf = capture.crop((0, height / 2.5, width * 0.1, height))
 
-    imagesToProcess = [lowershelf, uppershelf]
+    imagesToProcess = [uppershelf, lowershelf]
     for image in imagesToProcess:
         if check_color_multiple(image, Colors.COLOR_VIEWCAMERA):
             logging.debug(
                 f"find_camera_buttons: View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
             )
-            return 0 if image == imagesToProcess[0] else 1
+            return 0 if image is lowershelf else 1
     logging.debug("find_camera_buttons: none found")
     return False
 
