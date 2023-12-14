@@ -25,6 +25,6 @@ jobs:
         cache: 'pip'
     - run: pip install -r requirements.txt pyinstaller
     - run: pyinstaller script.py --name sgplus --noconfirm --onefile --add-binary "autoit\AutoItX3_x64.dll;.\autoit\lib"
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/sgplus.exe
