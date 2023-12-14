@@ -153,6 +153,7 @@ def click_rollback() -> None:
 def click_camera() -> None:
     logging.debug("click_camera: called")
     global signal_mouse_coords
+
     if scan_for_dialog("exitcamera"):
         logging.debug("click_camera: scan_for_dialog(exitcamera) returned true, pressing backspace twice")
         for _ in range(2):
@@ -164,11 +165,13 @@ def click_camera() -> None:
     signal_mouse_coords = mouse.get_position()
     mouse_click("left")
     sleep_frames(2)
-    if scan_for_dialog("signal"):
+    result, dialogbox_image = scan_for_dialog("signal")
+    if result:
+        # if scan_for_dialog("signal"):
         logging.debug("click_camera: signal scan_for_dialog found")
         press_and_release("enter")
         camera_y = 0.92133
-    elif scan_for_dialog("uncontrolled"):
+    elif scan_for_dialog("uncontrolled", image=dialogbox_image):
         logging.debug("click_camera: uncontrolled signal found in click_camera")
         window = win32gui.GetForegroundWindow()
         rect = win32gui.GetClientRect(window)
@@ -203,11 +206,14 @@ def click_camera() -> None:
 
     zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
-    camera_x = zone_screen_width * 0.89414 + zone_screen_x
-    camera_y = camera_y * h
-    camera_position = win32gui.ClientToScreen(window, (int(camera_x), int(camera_y)))
+    camera_x_edge = int(zone_screen_width * 0.795 + zone_screen_x)
+    camera_x = int(zone_screen_width * 0.80 + zone_screen_x)
+    camera_y = int(camera_y * h)
+    camera_middle_position = win32gui.ClientToScreen(window, (camera_x_edge, camera_y))
+    camera_position = win32gui.ClientToScreen(window, (camera_x, camera_y))
 
-    sleep_frames(1)
+    move_mouse(x=camera_middle_position[0], y=camera_position[1], speed=0)
+    # sleep_frames(10, 0.1)
     move_mouse(x=camera_position[0], y=camera_position[1], speed=2)
     mouse_click("left")
     return
@@ -232,9 +238,10 @@ def toggle_disable() -> None:
 
 
 # TODO: Swap variables "h, w" for "w, h" for readability
+# TODO: Get rid of this function to reduce abstraction
 
 
-def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
+def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | bool | Image:
     logging.debug("scan_for_dialog: called")
     if mousex == mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
@@ -251,14 +258,14 @@ def scan_for_dialog(type: str, mousex=0, mousey=0) -> bool | int | bool:
     elif type == "signal":
         return find_controlled_sig_dialog(w, h, mousex, mousey)
     elif type == "uncontrolled":
-        return find_uncontrolled_sig_dialog(h, w, mousex, mousey)
+        return find_uncontrolled_sig_dialog(h, w, mousex, mousey, image)
     elif type == "viewcamera":
         return find_camera_buttons(h, w, window)
 
     return False
 
 
-def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bool:
+def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
@@ -278,25 +285,26 @@ def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int) -> bo
         dialogbox_x -= abs(zone_screen_right_bound - dialogbox_right_bound)
     elif zone_screen_left_bound > dialogbox_left_bound:
         dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
-    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
+    capture = dialogbox_image or screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
 
     capture_width, capture_height = capture.size
+    lower_x = upper_x = capture_width * 0.01
     upper_y = capture_height * 0.05
-    upper = capture.crop((0, upper_y, 0 + capture_width / 2, upper_y + 4))
+    upper = capture.crop((upper_x, upper_y, 0 + capture_width / 2.5, upper_y + 4))
     lower_y = capture_height * 0.65
-    lower = capture.crop((0, lower_y, 0 + capture_width / 2, lower_y + 4))
+    lower = capture.crop((lower_x, lower_y, 0 + capture_width / 2.5, lower_y + 4))
 
     imagesToProcess = [lower, upper]
     for image in imagesToProcess:
         logging.debug("find_uncontrolled_sig_dialog: iterating images")
-        if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE):
+        if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE, compareThreshold=10):
             logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
             return True
     logging.debug("find_uncontrolled_sig_dialog: return false path")
     return False
 
 
-def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool:
+def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool | Image:
     logging.debug("find_controlled_sig: called")
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
@@ -317,7 +325,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
     elif zone_screen_left_bound > dialogbox_left_bound:
         dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
 
-    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2).convert("RGB")
+    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
     w, h = capture.size
     upper = capture.crop((0, 0, w, h / 2))
     lower = capture.crop((0, h / 2, w, h))
@@ -334,7 +342,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
     )  # this doesn't run if check for white pixels is false. must change TODO
     logging.debug(f"find_controlled_sig_dialog: result: {result}")
 
-    return result
+    return result, capture
 
 
 def find_camera_buttons(h: int, w: int, windowID: int):
@@ -352,7 +360,7 @@ def find_camera_buttons(h: int, w: int, windowID: int):
         screen_cords[1],
         camerabutton_width,
         camerabutton_height * 2,
-    ).convert("RGB")
+    )
     width, height = capture.size
     uppershelf = capture.crop((0, 0, width * 0.1, height / 4))
     lowershelf = capture.crop((0, height / 2.5, width * 0.1, height))
@@ -385,7 +393,7 @@ def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
         screen_cords[1],
         exit_camera_button_width,
         exit_camera_button_height,
-    ).convert("RGB")
+    )
     width, height = capture.size
     lowershelf = capture.crop((0, height / 2, width, height / 2 + 2))
     imagesToProcess = [lowershelf]
@@ -421,7 +429,6 @@ def check_color_single(image: Image, color, threshold=7) -> bool:
         # Iterate over the x-axis
         for j in range(arr.shape[1]):
             col_to_compare = arr[i, j]
-            logging.debug(f"check_color_single: col_to_compare is {col_to_compare}")
             if color_approx_eq_np(col_to_compare, color, threshold):
                 logging.debug("check_color_single: colors similar, return True")
                 logging.debug(f"check_color_single: Time taken was {time.perf_counter() - start_time}")
