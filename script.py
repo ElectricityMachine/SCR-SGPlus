@@ -11,6 +11,7 @@ import math
 import sys
 import threading
 import time
+from typing import Any, TypeVar
 import winsound
 from collections.abc import Callable
 
@@ -29,7 +30,7 @@ from settings import AVG_FPS, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, VERSION, Colo
 from update_checker import check_for_updates
 
 enabled = True
-signal_mouse_coords: tuple = ()  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
+signal_mouse_coords: tuple[int, int]  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG if DEBUG_ENABLED else logging.INFO,
@@ -59,11 +60,11 @@ def screen_grab(x: int, y: int, width: int, height: int):
         return frombytes("RGB", im.size, im.bgra, "raw", "BGRX")
 
 
-def move_mouse(x: int, y: int, speed=1):
+def move_mouse(x: int, y: int, speed: int = 1):
     autoit.mouse_move(x, y, speed)
 
 
-def sleep_frames(frames: int, minwait=0) -> None:
+def sleep_frames(frames: int, minwait: int = 0) -> None:
     logging.debug(f"sleep_frames: Sleeping for {frames} frame(s)")
     one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
     time.sleep(max((frames * one_frame_time), minwait))
@@ -208,7 +209,7 @@ def click_camera() -> None:
     return
 
 
-def calculate_zone_screen(window_width: int, window_height: int) -> tuple:
+def calculate_zone_screen(window_width: int, window_height: int) -> tuple[int, int, int, int]:
     ZONE_SCREEN_HEIGHT_RATIO = 0.97735
     ZONE_SCREEN_WIDTH_RATIO = 1.34105
     zone_screen_height = math.ceil(ZONE_SCREEN_HEIGHT_RATIO * window_height)
@@ -229,7 +230,7 @@ def toggle_disable() -> None:
 # TODO: Get rid of this function to reduce abstraction
 
 
-def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | bool | Image:
+def scan_for_dialog(type: str, mousex: int = 0, mousey: int = 0, image: Image | None = None) -> bool | int | bool | Image:
     logging.debug("scan_for_dialog: called")
     if mousex == mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
@@ -249,7 +250,7 @@ def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | b
     return False
 
 
-def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
+def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialogbox_image: Image | None = None) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     capture = dialogbox_image or capture_dialogbox(w, h, mousex, mousey)
 
@@ -270,7 +271,7 @@ def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialo
     return False
 
 
-def capture_dialogbox(w, h, mousex, mousey):
+def capture_dialogbox(w: int, h: int, mousex: int, mousey: int):
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
@@ -345,7 +346,7 @@ def find_camera_buttons(w: int, h: int, windowID: int):
     return False
 
 
-def find_exit_cam_button(w: int, h: int, window):
+def find_exit_cam_button(w: int, h: int, window: int):
     logging.debug("find_exit_cam_button: called")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
@@ -371,7 +372,7 @@ def find_exit_cam_button(w: int, h: int, window):
     return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
 
 
-def color_approx_eq_np(inputColor: tuple, colorToCompare: tuple, threshold=5) -> bool:
+def color_approx_eq_np(inputColor: tuple[int, int, int], colorToCompare: tuple[int, int, int], threshold: int = 5) -> bool:
     """Check if a color is equal to another color within a given value
 
     Args:
@@ -389,7 +390,7 @@ def color_approx_eq_np(inputColor: tuple, colorToCompare: tuple, threshold=5) ->
     return max(diff) <= threshold
 
 
-def check_color_single(image: Image, color, threshold=7) -> bool:
+def check_color_single(image: Image, color: tuple[int, int, int], threshold: int = 7) -> bool:
     start_time = time.perf_counter()
     logging.debug("check_color_single: called")
     arr = np_array(image)
@@ -407,7 +408,7 @@ def check_color_single(image: Image, color, threshold=7) -> bool:
     return False
 
 
-def check_color_multiple(image: Image, colors: list, threshold=7) -> bool:
+def check_color_multiple(image: Image, colors: list[tuple[int, int, int]], threshold: int = 7) -> bool:
     logging.debug("check_color_multiple: called")
     arr = np_array(image)
 
@@ -425,7 +426,7 @@ def check_color_multiple(image: Image, colors: list, threshold=7) -> bool:
     return False
 
 
-def check_color_percentage_single(image: Image, color: tuple, compareThreshold=7, threshold=0.05) -> bool:
+def check_color_percentage_single(image: Image, color: tuple[int, int, int], compareThreshold: int = 7, threshold: float = 0.05) -> bool:
     logging.debug("check_color_percentage_single: called")
     matching_pixels = 0
     arr = np_array(image)
