@@ -69,18 +69,19 @@ def sleep_frames(frames: int, minwait=0) -> None:
     time.sleep(max((frames * one_frame_time), minwait))
 
 
+def is_able_to_run():
+    return enabled and win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox"
+
+
 def check_able_to_run(callback: Callable) -> None | Callable:
     logging.debug("check_able_to_run: called")
 
     def wrapper(*args):
-        if (
-            enabled
-            and win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox"
-            and callback is not None
-            and callable(callback)
-        ):
+        if is_able_to_run() and callback is not None and callable(callback):
             logging.debug("check_able_to_run: able to run")
             return callback(*args)
+        elif is_able_to_run() and callback is None or not callable(callback):
+            return True
         else:
             logging.debug("check_able_to_run: not able to run, returning")
             return None
