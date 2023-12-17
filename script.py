@@ -102,6 +102,7 @@ def click_signal(sig: str) -> None:
         press_and_release(sig)
         press_and_release("backspace")
 
+
 def calculate_bbox(rect: tuple) -> tuple[int, int, int, int]:
     return (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
 
