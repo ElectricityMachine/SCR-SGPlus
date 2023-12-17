@@ -234,7 +234,6 @@ def toggle_disable() -> None:
     beep.start()
 
 
-# TODO: Swap variables "h, w" for "w, h" for readability
 # TODO: Get rid of this function to reduce abstraction
 
 
@@ -245,24 +244,24 @@ def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | b
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
-    bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
-    _x = bbox[0]
-    _y = bbox[1]
-    w = bbox[2]
-    h = bbox[3]
+    window_bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
+    _x = window_bbox[0]
+    _y = window_bbox[1]
+    w = window_bbox[2]
+    h = window_bbox[3]
     if type == "exitcamera":
-        return find_exit_cam_button(w, bbox, window)
+        return find_exit_cam_button(w, h, window_bbox, window)
     elif type == "signal":
         return find_controlled_sig_dialog(w, h, mousex, mousey)
     elif type == "uncontrolled":
-        return find_uncontrolled_sig_dialog(h, w, mousex, mousey, image)
+        return find_uncontrolled_sig_dialog(w, h, mousex, mousey, image)
     elif type == "viewcamera":
-        return find_camera_buttons(h, w, window)
+        return find_camera_buttons(w, h, window)
 
     return False
 
 
-def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
+def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
@@ -342,7 +341,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
     return result, capture
 
 
-def find_camera_buttons(h: int, w: int, windowID: int):
+def find_camera_buttons(w: int, h: int, windowID: int):
     logging.debug("find_camera_buttons: called")
     zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
@@ -373,7 +372,7 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     return False
 
 
-def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
+def find_exit_cam_button(w: int, h: int, bbox: tuple[int, int, int, int], window):
     logging.debug("find_exit_cam_button")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
