@@ -102,6 +102,9 @@ def click_signal(sig: str) -> None:
         press_and_release(sig)
         press_and_release("backspace")
 
+def calculate_bbox(rect: tuple) -> tuple[int, int, int, int]:
+    return (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
+
 
 @check_able_to_run
 def click_rollback() -> None:
@@ -123,11 +126,7 @@ def click_rollback() -> None:
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
-    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-    _x = bbox[0]
-    _y = bbox[1]
-    window_width = bbox[2]
-    window_height = bbox[3]
+    x, y, window_width, window_height = calculate_bbox(rect)
     zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(
         window_width, window_height
     )
@@ -174,11 +173,7 @@ def click_camera() -> None:
         window = win32gui.GetForegroundWindow()
         rect = win32gui.GetClientRect(window)
 
-        bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
-        _x = bbox[0]
-        _y = bbox[1]
-        w = bbox[2]
-        h = bbox[3]
+        x, y, w, h = calculate_bbox(rect)
         press_and_release("enter")
         sleep_frames(2)
         result = find_camera_buttons(h, w, window)
@@ -196,11 +191,7 @@ def click_camera() -> None:
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
-    bbox = [rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]]
-    _x = bbox[0]
-    _y = bbox[1]
-    w = bbox[2]
-    h = bbox[3]
+    x, y, w, h = calculate_bbox(rect)
 
     zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
@@ -244,13 +235,9 @@ def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | b
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
-    window_bbox = (rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])
-    _x = window_bbox[0]
-    _y = window_bbox[1]
-    w = window_bbox[2]
-    h = window_bbox[3]
+    x, y, w, h = calculate_bbox(rect)
     if type == "exitcamera":
-        return find_exit_cam_button(w, h, window_bbox, window)
+        return find_exit_cam_button(w, h, window)
     elif type == "signal":
         return find_controlled_sig_dialog(w, h, mousex, mousey)
     elif type == "uncontrolled":
@@ -263,25 +250,7 @@ def scan_for_dialog(type: str, mousex=0, mousey=0, image=None) -> bool | int | b
 
 def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
     logging.debug("find_uncontrolled_sig_dialog: called")
-    dialogbox_height = math.ceil(h * 0.125)
-    dialogbox_width = math.ceil(dialogbox_height * 2)
-    dialogbox_x = math.floor(mousex - dialogbox_width / 2)
-    dialogbox_y = math.floor(mousey - dialogbox_height)
-
-    dialogbox_left_bound = dialogbox_x
-    dialogbox_right_bound = dialogbox_x + dialogbox_width
-
-    zone_screen_height, zone_screen_width, zsx, zsy = calculate_zone_screen(w, h)
-    window = win32gui.GetForegroundWindow()
-    zone_screen_x, zone_screen_y = win32gui.ClientToScreen(window, (zsx, zsy))
-    zone_screen_right_bound = zone_screen_x + zone_screen_width
-    zone_screen_left_bound = zone_screen_x
-    dialogbox_left_bound = dialogbox_x
-    if zone_screen_right_bound < dialogbox_right_bound:
-        dialogbox_x -= abs(zone_screen_right_bound - dialogbox_right_bound)
-    elif zone_screen_left_bound > dialogbox_left_bound:
-        dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
-    capture = dialogbox_image or screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
+    capture = dialogbox_image or capture_dialogbox(w, h, mousex, mousey)
 
     capture_width, capture_height = capture.size
     lower_x = upper_x = capture_width * 0.01
@@ -300,8 +269,7 @@ def find_uncontrolled_sig_dialog(w: int, h: int, mousex: int, mousey: int, dialo
     return False
 
 
-def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool | Image:
-    logging.debug("find_controlled_sig: called")
+def capture_dialogbox(w, h, mousex, mousey):
     dialogbox_height = math.ceil(h * 0.125)
     dialogbox_width = math.ceil(dialogbox_height * 2)
     dialogbox_x = math.floor(mousex - dialogbox_width / 2)
@@ -311,8 +279,7 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
     dialogbox_right_bound = dialogbox_x + dialogbox_width
 
     zone_screen_height, zone_screen_width, zsx, zsy = calculate_zone_screen(w, h)
-    window = win32gui.GetForegroundWindow()
-    zone_screen_x, zone_screen_y = win32gui.ClientToScreen(window, (zsx, zsy))
+    zone_screen_x, zone_screen_y = win32gui.ClientToScreen(win32gui.GetForegroundWindow(), (zsx, zsy))
     zone_screen_right_bound = zone_screen_x + zone_screen_width
     zone_screen_left_bound = zone_screen_x
     dialogbox_left_bound = dialogbox_x
@@ -320,8 +287,13 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool
         dialogbox_x -= abs(zone_screen_right_bound - dialogbox_right_bound)
     elif zone_screen_left_bound > dialogbox_left_bound:
         dialogbox_x += abs(zone_screen_left_bound - dialogbox_left_bound)
+    return screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
 
-    capture = screen_grab(dialogbox_x, dialogbox_y, dialogbox_width, dialogbox_height * 2)
+
+def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> bool | Image:
+    logging.debug("find_controlled_sig: called")
+    capture = capture_dialogbox(w, h, mousex, mousey)
+
     w, h = capture.size
     upper = capture.crop((0, 0, w, h / 2))
     lower = capture.crop((0, h / 2, w, h))
@@ -372,12 +344,13 @@ def find_camera_buttons(w: int, h: int, windowID: int):
     return False
 
 
-def find_exit_cam_button(w: int, h: int, bbox: tuple[int, int, int, int], window):
-    logging.debug("find_exit_cam_button")
+def find_exit_cam_button(w: int, h: int, window):
+    logging.debug("find_exit_cam_button: called")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
 
-    y = bbox[1]
+    rect = win32gui.GetClientRect(win32gui.GetForegroundWindow())
+    x, y, w, h = calculate_bbox(rect)
     exit_camera_button_y = 85 + y
     exit_camera_button_x = 0.91166 * camera_controls_width + camera_controls_x - 5
     exit_camera_button_width = 50
