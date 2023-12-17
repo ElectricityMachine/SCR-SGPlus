@@ -64,7 +64,7 @@ def move_mouse(x: int, y: int, speed: int = 1):
     autoit.mouse_move(x, y, speed)
 
 
-def sleep_frames(frames: int, minwait: int = 0) -> None:
+def sleep_frames(frames: int, minwait: float = 0) -> None:
     logging.debug(f"sleep_frames: Sleeping for {frames} frame(s)")
     one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
     time.sleep(max((frames * one_frame_time), minwait))
@@ -74,15 +74,13 @@ def is_able_to_run():
     return enabled and win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox"
 
 
-def check_able_to_run(callback: Callable) -> None | Callable:
+def check_able_to_run(callback: Callable[..., Any]) -> None | Callable[..., Any]:
     logging.debug("check_able_to_run: called")
 
     def wrapper(*args):
-        if is_able_to_run() and callback is not None and callable(callback):
+        if is_able_to_run() and callable(callback):
             logging.debug("check_able_to_run: able to run")
             return callback(*args)
-        elif is_able_to_run() and callback is None or not callable(callback):
-            return True
         else:
             logging.debug("check_able_to_run: not able to run, returning")
             return None
@@ -231,7 +229,9 @@ def toggle_disable() -> None:
 # TODO: Get rid of this function to reduce abstraction
 
 
-def scan_for_dialog(type: str, mousex: int = 0, mousey: int = 0, image: Image | None = None) -> bool | int | bool | Image:
+def scan_for_dialog(
+    type: str, mousex: int = 0, mousey: int = 0, image: Image | None = None
+) -> bool | int | bool | Image:
     logging.debug("scan_for_dialog: called")
     if mousex == mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
@@ -352,7 +352,7 @@ def find_camera_buttons(h: int, w: int, windowID: int):
 
 
 def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
-    logging.debug("find_exit_cam_button: called")
+    logging.debug("find_exit_cam_button")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
 
@@ -377,7 +377,9 @@ def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
     return all(check_color_single(image, Colors.COLOR_CAMERA_EXIT) for image in imagesToProcess)
 
 
-def color_approx_eq_np(inputColor: tuple[int, int, int], colorToCompare: tuple[int, int, int], threshold: int = 5) -> bool:
+def color_approx_eq_np(
+    inputColor: tuple[int, int, int], colorToCompare: tuple[int, int, int], threshold: int = 5
+) -> bool:
     """Check if a color is equal to another color within a given value
 
     Args:
@@ -431,7 +433,9 @@ def check_color_multiple(image: Image, colors: list[tuple[int, int, int]], thres
     return False
 
 
-def check_color_percentage_single(image: Image, color: tuple[int, int, int], compareThreshold: int = 7, threshold: float = 0.05) -> bool:
+def check_color_percentage_single(
+    image: Image, color: tuple[int, int, int], compareThreshold: int = 7, threshold: float = 0.05
+) -> bool:
     logging.debug("check_color_percentage_single: called")
     matching_pixels = 0
     arr = np_array(image)
