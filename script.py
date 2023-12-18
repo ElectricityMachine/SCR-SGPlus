@@ -11,7 +11,7 @@ import math
 import sys
 import threading
 import time
-from typing import Any, TypeVar
+from typing import Any
 import winsound
 from collections.abc import Callable
 
