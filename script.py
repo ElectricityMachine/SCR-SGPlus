@@ -93,7 +93,7 @@ def click_signal(sig: str) -> None:
     logging.debug("click_signal: called")
     coord = mouse.get_position()
     mouse.click("left")
-    sleep_frames(2)
+    sleep_frames(3)
     result, image = scan_for_dialog("signal", coord[0], coord[1])
     if result:
         logging.debug("click_signal: scan_for_dialog returned true")
@@ -487,6 +487,10 @@ def enabled_warning():
 
 
 if __name__ == "__main__":
+    if sys.version_info.major == 3 and sys.version_info.minor < 12:
+        raise Exception(
+            "Your Python version is incompatible with this script. Please update Python by going to https://python.org and downloading the latest version for your operating system"
+        )
     add_hotkey(2, lambda: click_signal("1"))  # 1
     add_hotkey(3, lambda: click_signal("2"))  # 2
     add_hotkey(4, lambda: click_signal("3"))  # 3
