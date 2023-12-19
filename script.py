@@ -34,7 +34,7 @@ signal_mouse_coords: tuple[int, int]  # Mouse coordinates used to return cursor 
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG if DEBUG_ENABLED else logging.INFO,
-    format="%(levelname)s: %(message)s",
+    format="%(levelname)s: %(funcName)s: %(message)s",
 )
 
 
@@ -65,7 +65,7 @@ def move_mouse(x: int, y: int, speed: int = 1):
 
 
 def sleep_frames(frames: int, minwait: float = 0) -> None:
-    logging.debug(f"sleep_frames: Sleeping for {frames} frame(s)")
+    logging.debug(f"Sleeping for {frames} frame(s)")
     one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
     time.sleep(max((frames * one_frame_time), minwait))
 
@@ -75,14 +75,14 @@ def is_able_to_run():
 
 
 def check_able_to_run(callback: Callable[..., Any]) -> None | Callable[..., Any]:
-    logging.debug("check_able_to_run: called")
+    logging.debug("called")
 
     def wrapper(*args):
         if is_able_to_run() and callable(callback):
-            logging.debug("check_able_to_run: able to run")
+            logging.debug("able to run")
             return callback(*args)
         else:
-            logging.debug("check_able_to_run: not able to run, returning")
+            logging.debug("not able to run, returning")
             return None
 
     return wrapper
@@ -90,13 +90,13 @@ def check_able_to_run(callback: Callable[..., Any]) -> None | Callable[..., Any]
 
 @check_able_to_run
 def click_signal(sig: str) -> None:
-    logging.debug("click_signal: called")
+    logging.debug("called")
     coord = mouse.get_position()
     mouse.click("left")
     sleep_frames(3)
     result, image = scan_for_dialog("signal", coord[0], coord[1])
     if result:
-        logging.debug("click_signal: scan_for_dialog returned true")
+        logging.debug("scan_for_dialog returned true")
         sleep_frames(3)
         press_and_release(sig)
         press_and_release("backspace")
@@ -108,19 +108,19 @@ def calculate_bbox(rect: tuple) -> tuple[int, int, int, int]:
 
 @check_able_to_run
 def click_rollback() -> None:
-    logging.debug("click_rollback: called")
+    logging.debug("called")
     mousex, mousey = mouse.get_position()
     mouse.click("left")
     sleep_frames(2)
     if scan_for_dialog("exitcamera"):
-        logging.debug("click_rollback: scan_for_dialog(exitcamera) returned true")
+        logging.debug("scan_for_dialog(exitcamera) returned true")
         return
     result, image = scan_for_dialog("signal", mousex, mousey)
     if result:
-        logging.debug("click_rollback: scan_for_dialog(signal) returned true, pressing enter")
+        logging.debug("scan_for_dialog(signal) returned true, pressing enter")
         press_and_release("enter")
     else:
-        logging.debug("return path in click_rollback")
+        logging.debug("return path")
         return
     logging.debug("click_rollback: execute main body outside if-elif path")
     window = win32gui.GetForegroundWindow()
@@ -149,27 +149,27 @@ def click_rollback() -> None:
 
 @check_able_to_run
 def click_camera() -> None:
-    logging.debug("click_camera: called")
+    logging.debug("called")
     global signal_mouse_coords
 
     if scan_for_dialog("exitcamera"):
-        logging.debug("click_camera: scan_for_dialog(exitcamera) returned true, pressing backspace twice")
+        logging.debug("scan_for_dialog(exitcamera) returned true, pressing backspace twice")
         press_and_release("backspace")
         press_and_release("backspace")
         if signal_mouse_coords:
             move_mouse(signal_mouse_coords[0], signal_mouse_coords[1], speed=1)
         return
-    logging.debug("click_camera: exitcamera dialog not found, executing main body")
+    logging.debug("exitcamera dialog not found, executing main body")
     signal_mouse_coords = mouse.get_position()
     mouse.click("left")
     sleep_frames(2)
     result, dialogbox_image = scan_for_dialog("signal")
     if result:
-        logging.debug("click_camera: signal scan_for_dialog found")
+        logging.debug("signal scan_for_dialog found")
         press_and_release("enter")
         camera_y = 0.92133
     elif scan_for_dialog("uncontrolled", image=dialogbox_image):
-        logging.debug("click_camera: uncontrolled signal found in click_camera")
+        logging.debug("uncontrolled signal found in click_camera")
         window = win32gui.GetForegroundWindow()
         rect = win32gui.GetClientRect(window)
 
@@ -177,17 +177,17 @@ def click_camera() -> None:
         press_and_release("enter")
         sleep_frames(2)
         result = find_camera_buttons(h, w, window)
-        logging.debug(f"click_camera: result is {result}")
+        logging.debug(f"result is {result}")
         if result is False:
-            logging.debug("click_camera: returning because result is False, no dialog found")
+            logging.debug("returning because result is False, no dialog found")
             return
         camera_y = 0.80137 if result == 1 else 0.92133
         x = "lower number" if camera_y == 0.80137 else "upper number"
-        logging.debug(f"click_camera: uncontrolled scan_for_dialog true in click_camera with x-value of {x}")
+        logging.debug(f"uncontrolled scan_for_dialog true in click_camera with x-value of {x}")
     else:
-        logging.debug("click_camera: return none path in click_camera")
+        logging.debug("return none path in click_camera")
         return
-    logging.debug("click_camera: outside if-elif path")
+    logging.debug("outside if-elif path")
     window = win32gui.GetForegroundWindow()
     rect = win32gui.GetClientRect(window)
 
@@ -219,7 +219,7 @@ def calculate_zone_screen(window_width: int, window_height: int) -> tuple[int, i
 
 def toggle_disable() -> None:
     global enabled
-    logging.debug(f"toggle_disable called: enabled is {enabled}")
+    logging.debug(f"enabled is {enabled}")
     enabled = not enabled
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
@@ -232,7 +232,7 @@ def toggle_disable() -> None:
 def scan_for_dialog(
     type: str, mousex: int = 0, mousey: int = 0, image: Image | None = None
 ) -> bool | int | bool | Image:
-    logging.debug("scan_for_dialog: called")
+    logging.debug("called")
     if mousex == mousey and mousex == 0:
         mousex, mousey = mouse.get_position()
     window = win32gui.GetForegroundWindow()
@@ -256,7 +256,7 @@ def scan_for_dialog(
 
 
 def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int, dialogbox_image=None) -> bool:
-    logging.debug("find_uncontrolled_sig_dialog: called")
+    logging.debug("called")
     capture = dialogbox_image or capture_dialogbox(w, h, mousex, mousey)
 
     capture_width, capture_height = capture.size
@@ -268,11 +268,11 @@ def find_uncontrolled_sig_dialog(h: int, w: int, mousex: int, mousey: int, dialo
 
     imagesToProcess = [lower, upper]
     for image in imagesToProcess:
-        logging.debug("find_uncontrolled_sig_dialog: iterating images")
+        logging.debug("iterating images")
         if check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE, compareThreshold=10):
-            logging.debug("find_uncontrolled_sig_dialog: image loop: numpy white pixels returned success")
+            logging.debug("image loop: numpy white pixels returned success")
             return True
-    logging.debug("find_uncontrolled_sig_dialog: return false path")
+    logging.debug("return false path")
     return False
 
 
@@ -298,7 +298,7 @@ def capture_dialogbox(w: int, h: int, mousex: int, mousey: int):
 
 
 def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> tuple[bool, Image]:
-    logging.debug("find_controlled_sig: called")
+    logging.debug("called")
     capture = capture_dialogbox(w, h, mousex, mousey)
 
     w, h = capture.size
@@ -309,19 +309,19 @@ def find_controlled_sig_dialog(w: int, h: int, mousex: int, mousey: int) -> tupl
     lowershelf = lower.crop((0, height * 0.66, width, height * 0.66 + 3))
     uppershelf = upper.crop((0, upperh * 0.4, upperw, upperh * 0.4 + 2))
     imagesToProcess = [lowershelf, uppershelf]
-    logging.debug("find_controlled_sig_dialog: made it to generator")
+    logging.debug("made it to generator")
     result = any(
         check_color_percentage_single(image, Colors.COLOR_DIALOG_WHITE, threshold=0.01)
         and check_color_multiple(image, Colors.COLOR_DIALOG_BUTTONS)
         for image in imagesToProcess
     )  # this doesn't run if check for white pixels is false. must change TODO
-    logging.debug(f"find_controlled_sig_dialog: result: {result}")
+    logging.debug(f"result: {result}")
 
     return result, capture
 
 
 def find_camera_buttons(h: int, w: int, windowID: int):
-    logging.debug("find_camera_buttons: called")
+    logging.debug("called")
     zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y = calculate_zone_screen(w, h)
 
     camerabutton_height = math.ceil(h * 0.125 * 0.375)
@@ -344,15 +344,15 @@ def find_camera_buttons(h: int, w: int, windowID: int):
     for image in imagesToProcess:
         if check_color_multiple(image, Colors.COLOR_VIEWCAMERA):
             logging.debug(
-                f"find_camera_buttons: View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
+                f"View camera button found. We got {0 if image==imagesToProcess[0] else 1} (0=upper, 1=lower)"
             )
             return 0 if image is lowershelf else 1
-    logging.debug("find_camera_buttons: none found")
+    logging.debug("none found")
     return False
 
 
 def find_exit_cam_button(w: int, bbox: tuple[int, int, int, int], window):
-    logging.debug("find_exit_cam_button")
+    logging.debug("called")
     camera_controls_width = 283
     camera_controls_x = math.ceil(w / 2 - camera_controls_width / 2)
 
@@ -399,7 +399,7 @@ def color_approx_eq_np(
 
 def check_color_single(image: Image, color: tuple[int, int, int], threshold: int = 7) -> bool:
     start_time = time.perf_counter()
-    logging.debug("check_color_single: called")
+    logging.debug("called")
     arr = np_array(image)
 
     # Iterate over the y-axis
@@ -408,15 +408,15 @@ def check_color_single(image: Image, color: tuple[int, int, int], threshold: int
         for j in range(arr.shape[1]):
             col_to_compare = arr[i, j]
             if color_approx_eq_np(col_to_compare, color, threshold):
-                logging.debug("check_color_single: colors similar, return True")
-                logging.debug(f"check_color_single: Time taken was {time.perf_counter() - start_time}")
+                logging.debug("colors similar, return True")
+                logging.debug(f"Time taken was {time.perf_counter() - start_time}")
                 return True
-    logging.debug("check_color_single: no similar colors found, returning False")
+    logging.debug("no similar colors found, returning False")
     return False
 
 
 def check_color_multiple(image: Image, colors: list[tuple[int, int, int]], threshold: int = 7) -> bool:
-    logging.debug("check_color_multiple: called")
+    logging.debug("called")
     arr = np_array(image)
 
     # Iterate over the y-axis
@@ -427,16 +427,16 @@ def check_color_multiple(image: Image, colors: list[tuple[int, int, int]], thres
             col_to_compare = arr[i, j]
             for color in colors:
                 if color_approx_eq_np(col_to_compare, color, threshold):
-                    logging.debug("check_colored_pixels_np: colors similar, return True")
+                    logging.debug("colors similar, return True")
                     return True
-    logging.debug("check_colored_pixels_np: no similar colors found, returning False")
+    logging.debug("no similar colors found, returning False")
     return False
 
 
 def check_color_percentage_single(
     image: Image, color: tuple[int, int, int], compareThreshold: int = 7, threshold: float = 0.05
 ) -> bool:
-    logging.debug("check_color_percentage_single: called")
+    logging.debug("called")
     matching_pixels = 0
     arr = np_array(image)
 
@@ -449,11 +449,9 @@ def check_color_percentage_single(
             if color_approx_eq_np(col_to_compare, color, compareThreshold):
                 matching_pixels += 1
             if matching_pixels / arr.size >= threshold:
-                logging.debug(f"check_color_percentage_single: matching pixels > {threshold * 10 ** 2}% found")
+                logging.debug(f"matching pixels > {threshold * 10 ** 2}% found")
                 return True
-    logging.debug(
-        f"check_color_percentage_single: not enough white pixels found for array size. numpixels: {matching_pixels/arr.size}"
-    )
+    logging.debug(f"not enough white pixels found for array size. numpixels: {matching_pixels/arr.size}")
     return False
 
 
