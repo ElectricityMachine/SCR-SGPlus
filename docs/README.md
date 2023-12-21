@@ -43,9 +43,8 @@ SG+ is a macro script written in Python that streamlines your signalling experie
 ### **Installation**
 
 #### Binary (.exe file)
-1. Download sgplus.zip from the [latest releases page](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest)
-2. Extract the zip to your desired location (right click > Extract All).
-3. Run **sgplus.exe**.
+1. Download sgplus.exe from the [latest releases page](https://github.com/ElectricityMachine/SCR-SGPlus/releases/latest)
+2. Run **sgplus.exe**.
 **Note:** Some antiviruses may detect the program as malware. This is a false-positive, as such you may have to add an exclusion to your antivirus software for the program to run. Any binary attached to a release is the same as the one built automatically [here](https://github.com/ElectricityMachine/SCR-SGPlus/actions/workflows/build.yml)
 
 #### Source (running script directly)
