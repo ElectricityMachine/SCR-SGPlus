@@ -7,7 +7,7 @@ from requests import exceptions as requests_exceptions
 from requests import get as requests_get
 from semver import Version
 
-from settings import VERSION
+from constants import VERSION
 
 # https://python-semver.readthedocs.io/en/latest/advanced/deal-with-invalid-versions.html
 BASEVERSION = re.compile(

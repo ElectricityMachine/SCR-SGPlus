@@ -1,9 +1,4 @@
-AVG_FPS = 40  # Set your average FPS here (default 40)
-AVG_PING = 0  # Set your average ping here (default 0)
-DEBUG_ENABLED = False  # If true, will enable debug logging
-UPDATE_CHECK_ENABLED = True  # If true, will check for updates on startup
-VERSION = "v0.4.0-rc1"
-
+VERSION = "v0.4.1"
 
 class Colors:
     COLOR_DIALOG_BUTTONS = [

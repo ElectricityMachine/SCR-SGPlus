@@ -1,5 +1,5 @@
 # Made by ElectricityMachine
-# Version: 0.4.0
+# Version: 0.4.1
 # Major changes: Python 12 support, refactor
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
@@ -11,13 +11,15 @@ import math
 import sys
 import threading
 import time
-from typing import Any
 import winsound
 from collections.abc import Callable
+from typing import Any
 
 import colorama
 import mouse
 import pyperclip
+import tomli_w
+import tomllib
 import win32gui
 from keyboard import add_hotkey, press_and_release
 from keyboard import wait as keyboard_wait
@@ -26,14 +28,15 @@ from numpy import array as np_array
 from PIL.Image import Image, frombytes
 
 import autoit
-from settings import AVG_FPS, DEBUG_ENABLED, UPDATE_CHECK_ENABLED, VERSION, Colors
+from constants import VERSION, Colors
 from update_checker import check_for_updates
 
+config = None
 enabled = True
-signal_mouse_coords: tuple[int, int]  # Mouse coordinates used to return cursor to signal when exiting camera/rollback
+signal_mouse_coords: tuple[int, int]
+
 logging.basicConfig(
     stream=sys.stdout,
-    level=logging.DEBUG if DEBUG_ENABLED else logging.INFO,
     format="%(levelname)s: %(funcName)s: %(message)s",
 )
 
@@ -66,7 +69,7 @@ def move_mouse(x: int, y: int, speed: int = 1):
 
 def sleep_frames(frames: int, minwait: float = 0) -> None:
     logging.debug(f"Sleeping for {frames} frame(s)")
-    one_frame_time = round((1000 / AVG_FPS) * 10**-3, 4)
+    one_frame_time = round((1000 / config["average_fps"]) * 10**-3, 4)
     time.sleep(max((frames * one_frame_time), minwait))
 
 
@@ -462,19 +465,11 @@ def send_zone_message(zone: str) -> None:
     Args:
         zone (str): Which Zone message to copy
     """
-    switch = {
-        "A": "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
-        "B": "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
-        "C": "Zone C (Stepford Airport Area) is now under manual signalling control.",
-        "D": "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
-        "E": "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
-        "F": "Zone F (Benton area + Waterline up to but not including Airport West and Morganstown) is now under manual signalling control.",
-        "G": "Zone G (James St. to Esterfield) is now under manual signalling control.",
-    }
 
     beep = threading.Thread(target=lambda: winsound.Beep(600, 200))
     beep.start()
-    pyperclip.copy(switch.get(zone))
+
+    pyperclip.copy(config["zone_opening_messages"][zone])
 
 
 @check_able_to_run
@@ -484,35 +479,88 @@ def enabled_warning():
     beep.start()
 
 
+def init_config() -> None:
+    default_config = {
+        "onboard_msg": True,
+        "average_fps": 30,
+        "enable_update_checker": True,
+        "debug_mode_enabled": False,
+        "keybinds": {
+            "set_signal_danger": 2,
+            "set_signal_caution": 3,
+            "set_signal_proceed": 4,
+            "toggle_signal_camera": "C",
+            "toggle_macro": "F1",
+            "toggle_signal_rollback": "R",
+            "zone_a_message": 79,
+            "zone_b_message": 80,
+            "zone_c_message": 81,
+            "zone_d_message": 82,
+            "zone_e_message": 83,
+            "zone_f_message": 84,
+            "zone_g_message": 85,
+            "warning_keys": ["/", "'", "`"],
+        },
+        "zone_opening_messages": {
+            "A": "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
+            "B": "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
+            "C": "Zone C (Stepford Airport Area) is now under manual signalling control.",
+            "D": "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
+            "E": "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
+            "F": "Zone F (Benton area + Waterline up to but not including Airport West and Morganstown) is now under manual signalling control.",
+            "G": "Zone G (James St. to Esterfield) is now under manual signalling control.",
+        },
+    }
+    try:
+        with open("config.toml", "rb") as f:
+            return tomllib.load(f)
+    except FileNotFoundError:
+        logging.warn("Configuration file not found! Writing default config.")
+        with open("config.toml", "wb") as f:
+            tomli_w.dump(default_config, f)
+            return default_config
+
+
 if __name__ == "__main__":
-    if sys.version_info.major == 3 and sys.version_info.minor < 12:
+    if sys.version_info < (3, 12):
         raise Exception(
             "Your Python version is incompatible with this script. Please update Python by going to https://python.org and downloading the latest version for your operating system"
         )
-    add_hotkey(2, lambda: click_signal("1"))  # 1
-    add_hotkey(3, lambda: click_signal("2"))  # 2
-    add_hotkey(4, lambda: click_signal("3"))  # 3
-    add_hotkey(46, lambda: click_camera())  # C
-    add_hotkey(59, lambda: toggle_disable())  # F1
-    add_hotkey("R", lambda: click_rollback())  # R
-    add_hotkey("/", lambda: enabled_warning())  # / warning when opening chat while enabled
-    add_hotkey("`", lambda: enabled_warning())  # Command bar
-    add_hotkey("'", lambda: enabled_warning())  # Command bar
-    add_hotkey(79, lambda: send_zone_message("A"))  # Num 1
-    add_hotkey(80, lambda: send_zone_message("B"))  # Num 2
-    add_hotkey(81, lambda: send_zone_message("C"))  # Num 3
-    add_hotkey(75, lambda: send_zone_message("D"))  # Num 4
-    add_hotkey(76, lambda: send_zone_message("E"))  # Num 5
-    add_hotkey(77, lambda: send_zone_message("F"))  # Num 6
-    add_hotkey(71, lambda: send_zone_message("G"))  # Num 7
+    config = init_config()
+    log_lvl = logging.DEBUG if config["debug_mode_enabled"] else logging.INFO
+    logging.getLogger().setLevel(log_lvl)
+
+    keybinds = config["keybinds"]
+    add_hotkey(keybinds["set_signal_danger"], lambda: click_signal("1"))  # 1
+    add_hotkey(keybinds["set_signal_caution"], lambda: click_signal("2"))  # 2
+    add_hotkey(keybinds["set_signal_proceed"], lambda: click_signal("3"))  # 3
+    add_hotkey(keybinds["toggle_signal_camera"], lambda: click_camera())
+    add_hotkey(keybinds["toggle_macro"], lambda: toggle_disable())
+    add_hotkey(keybinds["toggle_signal_rollback"], lambda: click_rollback())
+    for i in keybinds["warning_keys"]:
+        add_hotkey(i, lambda: enabled_warning())
+    add_hotkey(keybinds["zone_a_message"], lambda: send_zone_message("A"))  # Num 1
+    add_hotkey(keybinds["zone_b_message"], lambda: send_zone_message("B"))  # Num 2
+    add_hotkey(keybinds["zone_c_message"], lambda: send_zone_message("C"))  # Num 3
+    add_hotkey(keybinds["zone_d_message"], lambda: send_zone_message("D"))  # Num 4
+    add_hotkey(keybinds["zone_e_message"], lambda: send_zone_message("E"))  # Num 5
+    add_hotkey(keybinds["zone_f_message"], lambda: send_zone_message("F"))  # Num 6
+    add_hotkey(keybinds["zone_g_message"], lambda: send_zone_message("G"))  # Num 7
 
     colorama.init()
 
-    if UPDATE_CHECK_ENABLED:
+    if not config["enable_update_checker"]:
         check_for_updates()
     else:
         logging.info("Skipping update check")
     winsound.Beep(500, 200)
     logging.info(f"SG+ {VERSION} Successfully Initialized")
+    logging.info(f"Current FPS: {config["average_fps"]}")
+    if config["onboard_msg"]:
+        print("\n\nThanks for using my script! If you have an issue, feel free to open an issue on GitHub or DM me")
+        print("Too slow? Increase your average_fps in config.toml. 40 can work well")
+        print("Script not working/dialog opens without anything happening? Decrease your average_fps")
+        print("Want to change keybinds or zone messages? It's all in the same file!")
+        print("To hide this message, change 'onboard_msg' to false in config.toml")
 
     keyboard_wait()
