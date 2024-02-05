@@ -503,9 +503,9 @@ def init_config() -> None:
         },
         "zone_opening_messages": {
             "A": "Zone A (Stepford Area, Willowfield, Whitefield branches) is now under manual signalling control.",
-            "B": "Zone B (St. Helens Bridge, Coxly, Beaulieu Park corridor) is now under manual signalling control.",
+            "B": "Zone B (St. Helens Bridge, CXY, Beaulieu Park corridor) is now under manual signalling control.",
             "C": "Zone C (Stepford Airport Area) is now under manual signalling control.",
-            "D": "Zone D (Morganstown to Leighton West) is now under manual signalling control.",
+            "D": "Zone D (Morganstown to LW) is now under manual signaling control.",
             "E": "Zone E (Llyn-by-the-Sea to Edgemead) is now under manual signalling control.",
             "F": "Zone F (Benton area + Waterline up to but not including Airport West and Morganstown) is now under manual signalling control.",
             "G": "Zone G (James St. to Esterfield) is now under manual signalling control.",
