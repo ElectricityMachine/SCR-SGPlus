@@ -1,4 +1,4 @@
-VERSION = "v0.4.1"
+VERSION = "v0.4.2"
 
 class Colors:
     COLOR_DIALOG_BUTTONS = [
