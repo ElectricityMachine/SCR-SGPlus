@@ -46,6 +46,7 @@ After your first startup, a ``config.toml`` file will be placed in the directory
 - [ ] Interactive keybind prompts/config (#34)
 - [ ] Automatic rollback preferences (#37)
 - [ ] Become FPS-independent
+- [ ] (Possibly) Rewrite in Rust or another performant language
 
 See the [open issues](https://github.com/ElectricityMachine/SCR-SGPlus/issues) for a full list of proposed features (and known issues).
 
