@@ -70,7 +70,7 @@ def move_mouse(x: int, y: int, speed: int = 1):
 
 
 def update_label(text, colour):
-    label.config(text=text, fg=colour)
+    label.config(text=text, fg="white", bg = "green" if enabled else "red")
 
 
 def move_text_pos(window):
@@ -87,9 +87,9 @@ def move_text_pos(window):
 def create_update_label(root):
     global label
     root.overrideredirect(True)
-    root.attributes("-transparentcolor", "white")
+    root.attributes('-alpha',0.85)
     root.attributes("-topmost", True)
-    label = tk.Label(root, text="SG+ Enabled", bg="white", fg="green", font=("Arial", 24))
+    label = tk.Label(root, text="SG+", bg="green", fg="white", font=("Consolas", 24))
     label.pack(fill="both", expand=True)
     move_text_pos(root)
 
@@ -253,7 +253,7 @@ def toggle_disable() -> None:
     enabled = not enabled
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
-    update_label("SG+ Enabled" if enabled else "SG+ Disabled", "green" if enabled else "red")
+    update_label("SG+" if enabled else "SG-", "white" if enabled else "white")
 
 
 # TODO: Swap variables "h, w" for "w, h" for readability
