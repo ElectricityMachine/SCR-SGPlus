@@ -68,8 +68,10 @@ def screen_grab(x: int, y: int, width: int, height: int):
 def move_mouse(x: int, y: int, speed: int = 1):
     autoit.mouse_move(x, y, speed)
 
+
 def update_label(text, colour):
     label.config(text=text, fg=colour)
+
 
 def move_text_pos(window):
     screen_width = window.winfo_screenwidth()
@@ -81,6 +83,7 @@ def move_text_pos(window):
     y_position = int(screen_height * 0.04)
     window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
 
+
 def create_update_label(root):
     global label
     root.overrideredirect(True)
@@ -89,6 +92,7 @@ def create_update_label(root):
     label = tk.Label(root, text="SG+ Enabled", bg="white", fg="green", font=("Arial", 24))
     label.pack(fill="both", expand=True)
     move_text_pos(root)
+
 
 def sleep_frames(frames: int, minwait: float = 0) -> None:
     logging.debug(f"Sleeping for {frames} frame(s)")
@@ -250,6 +254,7 @@ def toggle_disable() -> None:
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
     update_label("SG+ Enabled" if enabled else "SG+ Disabled", "green" if enabled else "red")
+
 
 # TODO: Swap variables "h, w" for "w, h" for readability
 # TODO: Get rid of this function to reduce abstraction
@@ -590,4 +595,3 @@ if __name__ == "__main__":
 
     root.mainloop()
     keyboard_wait()
-    
