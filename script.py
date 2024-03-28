@@ -1,5 +1,5 @@
 # Made by ElectricityMachine
-# Version: 0.4.2
+# Version: 0.5.0
 # Major changes: Python 12 support, refactor
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
@@ -14,6 +14,7 @@ import time
 import winsound
 from collections.abc import Callable
 from typing import Any
+from update_checker import coerce
 
 import tkinter as tk
 
@@ -247,13 +248,15 @@ def calculate_zone_screen(window_width: int, window_height: int) -> tuple[int, i
     return zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y
 
 
-def toggle_disable() -> None:
-    global enabled
+def toggle_disable(reason: str) -> None:
+    global enabled, disabled_reason
     logging.debug(f"enabled is {enabled}")
     enabled = not enabled
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
+
     update_label("SG+" if enabled else "SG-", "white" if enabled else "white")
+    disabled_reason = reason
 
 
 # TODO: Swap variables "h, w" for "w, h" for readability
@@ -502,17 +505,31 @@ def send_zone_message(zone: str) -> None:
 
 @check_able_to_run
 def enabled_warning():
-    """Play a warning sound if script is enabled"""
+    # Chat key or command bar button was pressed
+    """Play a warning sound if script is enabled. Disables script if config option 'auto_disable_on_chat' is set."""
+    global enabled
+    if enabled and config["auto_disable_on_chat"]:
+        toggle_disable("CHAT")
+        return
     beep = threading.Thread(target=lambda: winsound.Beep(640, 300))
     beep.start()
 
 
+def auto_enable_on_enter():
+    global disabled_reason
+    if win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox" and not enabled and disabled_reason == "CHAT":
+        toggle_disable("CHAT")
+
+
 def init_config() -> None:
     default_config = {
+        "VERSION_DO_NOT_EDIT": VERSION,
         "onboard_msg": True,
         "average_fps": 30,
         "enable_update_checker": True,
         "debug_mode_enabled": False,
+        "auto_disable_on_chat": True,
+        "auto_enable_on_enter": False,
         "keybinds": {
             "set_signal_danger": 2,
             "set_signal_caution": 3,
@@ -523,10 +540,10 @@ def init_config() -> None:
             "zone_a_message": 79,
             "zone_b_message": 80,
             "zone_c_message": 81,
-            "zone_d_message": 82,
-            "zone_e_message": 83,
-            "zone_f_message": 84,
-            "zone_g_message": 85,
+            "zone_d_message": 75,
+            "zone_e_message": 76,
+            "zone_f_message": 77,
+            "zone_g_message": 71,
             "warning_keys": ["/", "'", "`"],
         },
         "zone_opening_messages": {
@@ -543,10 +560,57 @@ def init_config() -> None:
         with open("config.toml", "rb") as f:
             return tomllib.load(f)
     except FileNotFoundError:
-        logging.warn("Configuration file not found! Writing default config.")
+        logging.warning("Configuration file not found! Writing default config.")
         with open("config.toml", "wb") as f:
             tomli_w.dump(default_config, f)
             return default_config
+
+
+def migrate_config():
+    try:
+        ver_num = config["VERSION_DO_NOT_EDIT"]
+    except KeyError:
+        ver_num = None
+
+    if not ver_num or coerce(ver_num) < coerce(VERSION):
+        if ver_num == "v0.4.1" or not ver_num:  # Fix incorrect numpad keybinds (#55) Adds auto disable on chat
+            config["keybinds"] = {
+                "set_signal_danger": 2,
+                "set_signal_caution": 3,
+                "set_signal_proceed": 4,
+                "toggle_signal_camera": "C",
+                "toggle_macro": "F1",
+                "toggle_signal_rollback": "R",
+                "zone_a_message": 79,
+                "zone_b_message": 80,
+                "zone_c_message": 81,
+                "zone_d_message": 75,
+                "zone_e_message": 76,
+                "zone_f_message": 77,
+                "zone_g_message": 71,
+                "warning_keys": ["/", "'", "`"],
+            }
+            config["auto_disable_on_chat"] = True
+            config["auto_enable_on_enter"] = True
+            config["VERSION_DO_NOT_EDIT"] = VERSION
+            with open("config.toml", "wb") as f:
+                tomli_w.dump(config, f)
+            logging.warning(
+                "[CONFIG MIGRATION]: Your keybinds were overriden to fix an issue with the zone opening messages."
+            )
+            logging.warning(
+                "[CONFIG MIGRATION]: This issue was introduced in 0.4.1. More info: https://github.com/ElectricityMachine/SCR-SGPlus/issues/55"
+            )
+            logging.warning(
+                "[CONFIG MIGRATION]: Please edit config.toml if you need to. This migration only happens once."
+            )
+            logging.warning(
+                '[CONFIG MIGRATION]: Additionally, a new feature to disable SG+ when opening the chat box was added. Change `auto_disable_on_chat` to "False" to disable this feature.'
+            )
+        else:
+            config["VERSION_DO_NOT_EDIT"] = VERSION
+            with open("config.toml", "wb") as f:
+                tomli_w.dump(config, f)
 
 
 if __name__ == "__main__":
@@ -555,6 +619,7 @@ if __name__ == "__main__":
             "Your Python version is incompatible with this script. Please update Python by going to https://python.org and downloading the latest version for your operating system"
         )
     config = init_config()
+    migrate_config()
     log_lvl = logging.DEBUG if config["debug_mode_enabled"] else logging.INFO
     logging.getLogger().setLevel(log_lvl)
 
@@ -563,10 +628,12 @@ if __name__ == "__main__":
     add_hotkey(keybinds["set_signal_caution"], lambda: click_signal("2"))  # 2
     add_hotkey(keybinds["set_signal_proceed"], lambda: click_signal("3"))  # 3
     add_hotkey(keybinds["toggle_signal_camera"], lambda: click_camera())
-    add_hotkey(keybinds["toggle_macro"], lambda: toggle_disable())
+    add_hotkey(keybinds["toggle_macro"], lambda: toggle_disable("F1"))
     add_hotkey(keybinds["toggle_signal_rollback"], lambda: click_rollback())
     for i in keybinds["warning_keys"]:
         add_hotkey(i, lambda: enabled_warning())
+    if config["auto_enable_on_enter"]:
+        add_hotkey("enter", lambda: auto_enable_on_enter())
     add_hotkey(keybinds["zone_a_message"], lambda: send_zone_message("A"))  # Num 1
     add_hotkey(keybinds["zone_b_message"], lambda: send_zone_message("B"))  # Num 2
     add_hotkey(keybinds["zone_c_message"], lambda: send_zone_message("C"))  # Num 3
