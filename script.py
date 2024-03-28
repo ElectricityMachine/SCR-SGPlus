@@ -644,7 +644,7 @@ if __name__ == "__main__":
 
     colorama.init()
 
-    if not config["enable_update_checker"]:
+    if config["enable_update_checker"]:
         check_for_updates()
     else:
         logging.info("Skipping update check")
