@@ -70,7 +70,7 @@ def move_mouse(x: int, y: int, speed: int = 1):
 
 
 def update_label(text, colour):
-    label.config(text=text, fg="white", bg = "green" if enabled else "red")
+    label.config(text=text, fg="white", bg="green" if enabled else "red")
 
 
 def move_text_pos(window):
@@ -87,7 +87,7 @@ def move_text_pos(window):
 def create_update_label(root):
     global label
     root.overrideredirect(True)
-    root.attributes('-alpha',0.85)
+    root.attributes("-alpha", 0.85)
     root.attributes("-topmost", True)
     label = tk.Label(root, text="SG+", bg="green", fg="white", font=("Consolas", 24))
     label.pack(fill="both", expand=True)
@@ -550,8 +550,6 @@ def init_config() -> None:
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    create_update_label(root)
     if sys.version_info < (3, 12):
         raise Exception(
             "Your Python version is incompatible with this script. Please update Python by going to https://python.org and downloading the latest version for your operating system"
@@ -593,5 +591,7 @@ if __name__ == "__main__":
         print("Want to change keybinds or zone messages? It's all in the same file!")
         print("To hide this message, change 'onboard_msg' to false in config.toml")
 
+    root = tk.Tk()
+    create_update_label(root)
     root.mainloop()
     keyboard_wait()
