@@ -1,5 +1,5 @@
 # Made by ElectricityMachine
-# Version: 0.4.2
+# Version: 0.5.0
 # Major changes: Python 12 support, refactor
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
@@ -221,12 +221,13 @@ def calculate_zone_screen(window_width: int, window_height: int) -> tuple[int, i
     return zone_screen_height, zone_screen_width, zone_screen_x, zone_screen_y
 
 
-def toggle_disable() -> None:
-    global enabled
+def toggle_disable(reason: str) -> None:
+    global enabled, disabled_reason
     logging.debug(f"enabled is {enabled}")
     enabled = not enabled
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
+    disabled_reason = reason
 
 
 # TODO: Swap variables "h, w" for "w, h" for readability
@@ -475,9 +476,20 @@ def send_zone_message(zone: str) -> None:
 
 @check_able_to_run
 def enabled_warning():
-    """Play a warning sound if script is enabled"""
+    # Chat key or command bar button was pressed
+    """Play a warning sound if script is enabled. Disables script if config option 'auto_disable_on_chat' is set."""
+    global enabled
+    if enabled and config["auto_disable_on_chat"]:
+        toggle_disable("CHAT")
+        return
     beep = threading.Thread(target=lambda: winsound.Beep(640, 300))
     beep.start()
+
+
+def auto_enable_on_enter():
+    global disabled_reason
+    if win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox" and not enabled and disabled_reason == "CHAT":
+        toggle_disable("CHAT")
 
 
 def init_config() -> None:
@@ -487,6 +499,8 @@ def init_config() -> None:
         "average_fps": 30,
         "enable_update_checker": True,
         "debug_mode_enabled": False,
+        "auto_disable_on_chat": True,
+        "auto_enable_on_enter": False,
         "keybinds": {
             "set_signal_danger": 2,
             "set_signal_caution": 3,
@@ -530,7 +544,7 @@ def migrate_config():
         ver_num = None
 
     if not ver_num or coerce(ver_num) < coerce(VERSION):
-        if ver_num == "v0.4.1" or not ver_num:  # Fix incorrect numpad keybinds. Issue #55
+        if ver_num == "v0.4.1" or not ver_num:  # Fix incorrect numpad keybinds (#55) Adds auto disable on chat
             config["keybinds"] = {
                 "set_signal_danger": 2,
                 "set_signal_caution": 3,
@@ -547,6 +561,8 @@ def migrate_config():
                 "zone_g_message": 71,
                 "warning_keys": ["/", "'", "`"],
             }
+            config["auto_disable_on_chat"] = True
+            config["auto_enable_on_enter"] = True
             config["VERSION_DO_NOT_EDIT"] = VERSION
             with open("config.toml", "wb") as f:
                 tomli_w.dump(config, f)
@@ -558,6 +574,9 @@ def migrate_config():
             )
             logging.warning(
                 "[CONFIG MIGRATION]: Please edit config.toml if you need to. This migration only happens once."
+            )
+            logging.warning(
+                '[CONFIG MIGRATION]: Additionally, a new feature to disable SG+ when opening the chat box was added. Change `auto_disable_on_chat` to "False" to disable this feature.'
             )
         else:
             config["VERSION_DO_NOT_EDIT"] = VERSION
@@ -580,10 +599,12 @@ if __name__ == "__main__":
     add_hotkey(keybinds["set_signal_caution"], lambda: click_signal("2"))  # 2
     add_hotkey(keybinds["set_signal_proceed"], lambda: click_signal("3"))  # 3
     add_hotkey(keybinds["toggle_signal_camera"], lambda: click_camera())
-    add_hotkey(keybinds["toggle_macro"], lambda: toggle_disable())
+    add_hotkey(keybinds["toggle_macro"], lambda: toggle_disable("F1"))
     add_hotkey(keybinds["toggle_signal_rollback"], lambda: click_rollback())
     for i in keybinds["warning_keys"]:
         add_hotkey(i, lambda: enabled_warning())
+    if config["auto_enable_on_enter"]:
+        add_hotkey("enter", lambda: auto_enable_on_enter())
     add_hotkey(keybinds["zone_a_message"], lambda: send_zone_message("A"))  # Num 1
     add_hotkey(keybinds["zone_b_message"], lambda: send_zone_message("B"))  # Num 2
     add_hotkey(keybinds["zone_c_message"], lambda: send_zone_message("C"))  # Num 3
