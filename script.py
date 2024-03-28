@@ -16,6 +16,8 @@ from collections.abc import Callable
 from typing import Any
 from update_checker import coerce
 
+import tkinter as tk
+
 import colorama
 import mouse
 import pyperclip
@@ -66,6 +68,31 @@ def screen_grab(x: int, y: int, width: int, height: int):
 
 def move_mouse(x: int, y: int, speed: int = 1):
     autoit.mouse_move(x, y, speed)
+
+
+def update_label(text, colour):
+    label.config(text=text, fg="white", bg="green" if enabled else "red")
+
+
+def move_text_pos(window):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    window.update_idletasks()
+    window_width = window.winfo_width()
+    window_height = window.winfo_height()
+    x_position = (screen_width - window_width) // 2
+    y_position = int(screen_height * 0.04)
+    window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+
+
+def create_update_label(root):
+    global label
+    root.overrideredirect(True)
+    root.attributes("-alpha", 0.85)
+    root.attributes("-topmost", True)
+    label = tk.Label(root, text="SG+", bg="green", fg="white", font=("Consolas", 24))
+    label.pack(fill="both", expand=True)
+    move_text_pos(root)
 
 
 def sleep_frames(frames: int, minwait: float = 0) -> None:
@@ -227,6 +254,8 @@ def toggle_disable(reason: str) -> None:
     enabled = not enabled
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
+
+    update_label("SG+" if enabled else "SG-", "white" if enabled else "white")
     disabled_reason = reason
 
 
@@ -629,4 +658,7 @@ if __name__ == "__main__":
         print("Want to change keybinds or zone messages? It's all in the same file!")
         print("To hide this message, change 'onboard_msg' to false in config.toml")
 
+    root = tk.Tk()
+    create_update_label(root)
+    root.mainloop()
     keyboard_wait()
