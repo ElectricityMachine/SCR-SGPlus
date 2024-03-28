@@ -14,6 +14,7 @@ import time
 import winsound
 from collections.abc import Callable
 from typing import Any
+from update_checker import coerce
 
 import colorama
 import mouse
@@ -481,6 +482,7 @@ def enabled_warning():
 
 def init_config() -> None:
     default_config = {
+        "VERSION_DO_NOT_EDIT": VERSION,
         "onboard_msg": True,
         "average_fps": 30,
         "enable_update_checker": True,
@@ -495,10 +497,10 @@ def init_config() -> None:
             "zone_a_message": 79,
             "zone_b_message": 80,
             "zone_c_message": 81,
-            "zone_d_message": 82,
-            "zone_e_message": 83,
-            "zone_f_message": 84,
-            "zone_g_message": 85,
+            "zone_d_message": 75,
+            "zone_e_message": 76,
+            "zone_f_message": 77,
+            "zone_g_message": 71,
             "warning_keys": ["/", "'", "`"],
         },
         "zone_opening_messages": {
@@ -515,10 +517,52 @@ def init_config() -> None:
         with open("config.toml", "rb") as f:
             return tomllib.load(f)
     except FileNotFoundError:
-        logging.warn("Configuration file not found! Writing default config.")
+        logging.warning("Configuration file not found! Writing default config.")
         with open("config.toml", "wb") as f:
             tomli_w.dump(default_config, f)
             return default_config
+
+
+def migrate_config():
+    try:
+        ver_num = config["VERSION_DO_NOT_EDIT"]
+    except KeyError:
+        ver_num = None
+
+    if not ver_num or coerce(ver_num) < coerce(VERSION):
+        if ver_num == "v0.4.1" or not ver_num:  # Fix incorrect numpad keybinds. Issue #55
+            config["keybinds"] = {
+                "set_signal_danger": 2,
+                "set_signal_caution": 3,
+                "set_signal_proceed": 4,
+                "toggle_signal_camera": "C",
+                "toggle_macro": "F1",
+                "toggle_signal_rollback": "R",
+                "zone_a_message": 79,
+                "zone_b_message": 80,
+                "zone_c_message": 81,
+                "zone_d_message": 75,
+                "zone_e_message": 76,
+                "zone_f_message": 77,
+                "zone_g_message": 71,
+                "warning_keys": ["/", "'", "`"],
+            }
+            config["VERSION_DO_NOT_EDIT"] = VERSION
+            with open("config.toml", "wb") as f:
+                tomli_w.dump(config, f)
+            logging.warning(
+                "[CONFIG MIGRATION]: Your keybinds were overriden to fix an issue with the zone opening messages."
+            )
+            logging.warning(
+                "[CONFIG MIGRATION]: This issue was introduced in 0.4.1. More info: https://github.com/ElectricityMachine/SCR-SGPlus/issues/55"
+            )
+            logging.warning(
+                "[CONFIG MIGRATION]: Please edit config.toml if you need to. This migration only happens once."
+            )
+        else:
+            config["VERSION_DO_NOT_EDIT"] = VERSION
+            with open("config.toml", "wb") as f:
+                tomli_w.dump(config, f)
 
 
 if __name__ == "__main__":
@@ -527,6 +571,7 @@ if __name__ == "__main__":
             "Your Python version is incompatible with this script. Please update Python by going to https://python.org and downloading the latest version for your operating system"
         )
     config = init_config()
+    migrate_config()
     log_lvl = logging.DEBUG if config["debug_mode_enabled"] else logging.INFO
     logging.getLogger().setLevel(log_lvl)
 
