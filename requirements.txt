@@ -15,7 +15,7 @@ mss==9.0.1
 numpy==1.26.3
     # via -r requirements.txt
 PyAutoIt==0.6.5
-pillow==10.2.0
+pillow==10.3.0
     # via -r requirements.txt
 pyperclip==1.8.2
     # via -r requirements.txt
