@@ -665,6 +665,7 @@ if __name__ == "__main__":
         add_hotkey(i, lambda: enabled_warning())
     if config["auto_enable_on_enter"]:
         add_hotkey("enter", lambda: auto_enable_on_enter())
+        add_hotkey("shift+enter", lambda: auto_enable_on_enter())
     add_hotkey(keybinds["zone_a_message"], lambda: send_zone_message("A"))  # Num 1
     add_hotkey(keybinds["zone_b_message"], lambda: send_zone_message("B"))  # Num 2
     add_hotkey(keybinds["zone_c_message"], lambda: send_zone_message("C"))  # Num 3
