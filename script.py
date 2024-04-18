@@ -1,6 +1,6 @@
 # Made by ElectricityMachine
 # Version: 0.5.0
-# Major changes: Python 12 support, refactor
+# Major changes: Status indicator, config file
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
 # How to use: Hover over a signal and press the corresponding keybind to perform the action
@@ -176,6 +176,33 @@ def click_rollback() -> None:
     press_and_release("backspace")
     move_mouse(mousex, mousey, speed=0)
     return
+
+
+@check_able_to_run
+def toggle_signal_sidemenu() -> None:
+    logging.debug("\n\n\n\n\n\ncalled")
+    mousex, mousey = mouse.get_position()
+    window = win32gui.GetForegroundWindow()
+    rect = win32gui.GetClientRect(window)
+
+    x, y, w, h = calculate_bbox(rect)
+    if find_camera_buttons(h, w, window) is not False:
+        logging.debug("dialogbox found, closing menus")
+        press_and_release("backspace")
+        press_and_release("backspace")
+        return
+    logging.debug("after return")
+    mouse.click("left")
+    sleep_frames(2)
+    result, image = scan_for_dialog("signal", mousex, mousey)
+    if result:
+        logging.debug("scan_for_dialog(signal) returned true, pressing enter")
+        press_and_release("enter")
+        return
+    elif scan_for_dialog("uncontrolled", mousex, mousey):
+        logging.debug("uncontrolled signal found, pressing enter")
+        press_and_release("enter")
+        return
 
 
 @check_able_to_run
@@ -573,44 +600,47 @@ def migrate_config():
         ver_num = None
 
     if not ver_num or coerce(ver_num) < coerce(VERSION):
-        if ver_num == "v0.4.1" or not ver_num:  # Fix incorrect numpad keybinds (#55) Adds auto disable on chat
-            config["keybinds"] = {
-                "set_signal_danger": 2,
-                "set_signal_caution": 3,
-                "set_signal_proceed": 4,
-                "toggle_signal_camera": "C",
-                "toggle_macro": "F1",
-                "toggle_signal_rollback": "R",
-                "zone_a_message": 79,
-                "zone_b_message": 80,
-                "zone_c_message": 81,
-                "zone_d_message": 75,
-                "zone_e_message": 76,
-                "zone_f_message": 77,
-                "zone_g_message": 71,
-                "warning_keys": ["/", "'", "`"],
-            }
-            config["auto_disable_on_chat"] = True
-            config["auto_enable_on_enter"] = True
-            config["VERSION_DO_NOT_EDIT"] = VERSION
-            with open("config.toml", "wb") as f:
-                tomli_w.dump(config, f)
-            logging.warning(
-                "[CONFIG MIGRATION]: Your keybinds were overriden to fix an issue with the zone opening messages."
-            )
-            logging.warning(
-                "[CONFIG MIGRATION]: This issue was introduced in 0.4.1. More info: https://github.com/ElectricityMachine/SCR-SGPlus/issues/55"
-            )
-            logging.warning(
-                "[CONFIG MIGRATION]: Please edit config.toml if you need to. This migration only happens once."
-            )
-            logging.warning(
-                '[CONFIG MIGRATION]: Additionally, a new feature to disable SG+ when opening the chat box was added. Change `auto_disable_on_chat` to "False" to disable this feature.'
-            )
-        else:
-            config["VERSION_DO_NOT_EDIT"] = VERSION
-            with open("config.toml", "wb") as f:
-                tomli_w.dump(config, f)
+        # Fix incorrect numpad keybinds (#55) Adds auto disable on chat | Adds F key for sidemenu toggle
+        config["keybinds"] = {
+            "set_signal_danger": 2,
+            "set_signal_caution": 3,
+            "set_signal_proceed": 4,
+            "toggle_signal_camera": "C",
+            "toggle_macro": "F1",
+            "toggle_signal_rollback": "R",
+            "toggle_signal_sidemenu": "F",
+            "zone_a_message": 79,
+            "zone_b_message": 80,
+            "zone_c_message": 81,
+            "zone_d_message": 75,
+            "zone_e_message": 76,
+            "zone_f_message": 77,
+            "zone_g_message": 71,
+            "warning_keys": ["/", "'", "`"],
+        }
+        config["auto_disable_on_chat"] = True
+        config["auto_enable_on_enter"] = True
+        config["enable_update_checker"] = True
+        config["VERSION_DO_NOT_EDIT"] = VERSION
+        with open("config.toml", "wb") as f:
+            tomli_w.dump(config, f)
+        logging.warning(
+            "[CONFIG MIGRATION]: Your keybinds were overriden to fix an issue with the zone opening messages."
+        )
+        logging.warning(
+            "[CONFIG MIGRATION]: This issue was introduced in 0.4.1. More info: https://github.com/ElectricityMachine/SCR-SGPlus/issues/55"
+        )
+        logging.warning("[CONFIG MIGRATION]: Please edit config.toml if you need to. This migration only happens once.")
+        logging.warning(
+            '[CONFIG MIGRATION]: A new feature to disable SG+ when opening the chat box was added. Change `auto_disable_on_chat` to "False" to disable this feature.'
+        )
+        logging.warning(
+            '[CONFIG MIGRATION]: A new feature was added to open the signal sidemenu. Default keybind is "F". To use, hover over a signal and press it. Press again to close.'
+        )
+    else:
+        config["VERSION_DO_NOT_EDIT"] = VERSION
+        with open("config.toml", "wb") as f:
+            tomli_w.dump(config, f)
 
 
 if __name__ == "__main__":
@@ -641,6 +671,7 @@ if __name__ == "__main__":
     add_hotkey(keybinds["zone_e_message"], lambda: send_zone_message("E"))  # Num 5
     add_hotkey(keybinds["zone_f_message"], lambda: send_zone_message("F"))  # Num 6
     add_hotkey(keybinds["zone_g_message"], lambda: send_zone_message("G"))  # Num 7
+    add_hotkey(keybinds["toggle_signal_sidemenu"], lambda: toggle_signal_sidemenu())
 
     colorama.init()
 
@@ -652,7 +683,7 @@ if __name__ == "__main__":
     logging.info(f"SG+ {VERSION} Successfully Initialized")
     logging.info(f"Current FPS: {config["average_fps"]}")
     if config["onboard_msg"]:
-        print("\n\nThanks for using my script! If you have an issue, feel free to open an issue on GitHub or DM me")
+        print("Thanks for using my script! If you have an issue, feel free to open an issue on GitHub or DM me")
         print("Too slow? Increase your average_fps in config.toml. 40 can work well")
         print("Script not working/dialog opens without anything happening? Decrease your average_fps")
         print("Want to change keybinds or zone messages? It's all in the same file!")
