@@ -556,7 +556,7 @@ def init_config() -> None:
         "enable_update_checker": True,
         "debug_mode_enabled": False,
         "auto_disable_on_chat": True,
-        "auto_enable_on_enter": False,
+        "auto_enable_on_enter": True,
         "keybinds": {
             "set_signal_danger": 2,
             "set_signal_caution": 3,
@@ -564,6 +564,7 @@ def init_config() -> None:
             "toggle_signal_camera": "C",
             "toggle_macro": "F1",
             "toggle_signal_rollback": "R",
+            "toggle_signal_sidemenu": "F",
             "zone_a_message": 79,
             "zone_b_message": 80,
             "zone_c_message": 81,
