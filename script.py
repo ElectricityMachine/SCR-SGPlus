@@ -600,8 +600,13 @@ def migrate_config():
     except KeyError:
         ver_num = None
 
-    if not ver_num or coerce(ver_num) < coerce(VERSION):
-        # Fix incorrect numpad keybinds (#55) Adds auto disable on chat | Adds F key for sidemenu toggle
+    if not ver_num or ((coerce(ver_num) < coerce(VERSION)) and (coerce(VERSION) < 0.5 or coerce(ver_num) < 0.5)):
+        # TODO: Write tests for the config migration
+        # Changes made in 0.5:
+        # Fix incorrect numpad keybinds (#55)
+        # Auto disable on chat, re-enable on enter
+        # F key opens sidemenu
+        # Option for status indicator
         config["keybinds"] = {
             "set_signal_danger": 2,
             "set_signal_caution": 3,
