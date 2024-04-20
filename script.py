@@ -557,6 +557,7 @@ def init_config() -> None:
         "debug_mode_enabled": False,
         "auto_disable_on_chat": True,
         "auto_enable_on_enter": True,
+        "enable_status_indicator": True,
         "keybinds": {
             "set_signal_danger": 2,
             "set_signal_caution": 3,
@@ -600,7 +601,9 @@ def migrate_config():
     except KeyError:
         ver_num = None
 
-    if not ver_num or ((coerce(ver_num) < coerce(VERSION)) and (coerce(VERSION) < 0.5 or coerce(ver_num) < 0.5)):
+    if not ver_num or (
+        (coerce(ver_num) < coerce(VERSION)) and (coerce(VERSION) < coerce("0.5.0") or coerce(ver_num) < coerce("0.5"))
+    ):
         # TODO: Write tests for the config migration
         # Changes made in 0.5:
         # Fix incorrect numpad keybinds (#55)
@@ -627,6 +630,7 @@ def migrate_config():
         config["auto_disable_on_chat"] = True
         config["auto_enable_on_enter"] = True
         config["enable_update_checker"] = True
+        config["enable_status_indicator"] = True
         config["VERSION_DO_NOT_EDIT"] = VERSION
         with open("config.toml", "wb") as f:
             tomli_w.dump(config, f)
@@ -694,9 +698,11 @@ if __name__ == "__main__":
         print("Too slow? Increase your average_fps in config.toml. 40 can work well")
         print("Script not working/dialog opens without anything happening? Decrease your average_fps")
         print("Want to change keybinds or zone messages? It's all in the same file!")
+        print("Don't like the status indicator at the top? Same file, under ''")
         print("To hide this message, change 'onboard_msg' to false in config.toml")
 
-    root = tk.Tk()
-    create_update_label(root)
-    root.mainloop()
+    if config["enable_status_indicator"]:
+        root = tk.Tk()
+        create_update_label(root)
+        root.mainloop()
     keyboard_wait()

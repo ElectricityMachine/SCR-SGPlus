@@ -25,10 +25,11 @@ This method is intended for those who want to contribute to the project or modif
 
 ## Usage
 - Launch the program by running the .exe or ``start.bat``
-- Hover over a signal then:
+- Mouse over a signal, then:
   - press 1, 2, or 3, corresponding to the desired signal aspect.
   - press C to enter camera view, press C again to exit.
   - press R to toggle rollback.
+  - press F to enter or exit the signal's side menu.
 - Press F1 to enable or disable the script.
 - Use numpad 1-7 (1 is A, 2 is B, etc.) to copy zone opening messages to your clipboard.
 
@@ -39,9 +40,18 @@ After your first startup, a ``config.toml`` file will be placed in the directory
    - Example: If I want to change the camera button to F, I would go into ``config.toml`` and edit ``toggle_signal_camera = "C"`` to ``toggle_signal_camera = "F"``, or using scancodes from that webpage, ``toggle_signal_camera = 46``.
 - A future release of SG+ will greatly simplify this procedure.
 
+## I've found an issue!
+Great! Please [open an issue](https://github.com/ElectricityMachine/SCR-SGPlus/issues/new) or contact me below.
+
+Some issues include (but are **not** limited to):
+- Script fails to run or install
+- Certain signals do not respond to the script when trying to change aspects or enter/exit camera view
+- Entering/exiting camera view or toggling rollback does not work
+- Script locks up after some time (#60)
+
 ## Roadmap
 - [ ] TRTS Audible Warning
-- [ ] Visual script status indicator (#36)
+- [x] Visual script status indicator (#36)
 - [ ] Automatic terminus station setup
 - [ ] Interactive keybind prompts/config (#34)
 - [ ] Automatic rollback preferences (#37)
@@ -49,14 +59,6 @@ After your first startup, a ``config.toml`` file will be placed in the directory
 - [ ] (Possibly) Rewrite in Rust or another performant language
 
 See the [open issues](https://github.com/ElectricityMachine/SCR-SGPlus/issues) for a full list of proposed features (and known issues).
-
-### I've found an issue!
-Great! Please [open an issue](https://github.com/ElectricityMachine/SCR-SGPlus/issues/new) or contact me below.
-
-Some issues include (but are not limited to):
-- Script fails to run or install
-- Certain signals do not respond to the script when trying to change aspects or enter/exit camera view
-- Entering/exiting camera view or toggling rollback does not work
 
 ##### License
 By using this script, you must adhere to the license terms in the LICENSE file.
