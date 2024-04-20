@@ -282,7 +282,7 @@ def toggle_disable(reason: str) -> None:
     beep = threading.Thread(target=lambda: winsound.Beep(500, 100) if enabled else winsound.Beep(400, 100))
     beep.start()
 
-    update_label("SG+" if enabled else "SG-", "white" if enabled else "white")
+    update_label("SG+" if enabled else "SG-", "white")
     disabled_reason = reason
 
 
