@@ -698,7 +698,7 @@ if __name__ == "__main__":
         print("Too slow? Increase your average_fps in config.toml. 40 can work well")
         print("Script not working/dialog opens without anything happening? Decrease your average_fps")
         print("Want to change keybinds or zone messages? It's all in the same file!")
-        print("Don't like the status indicator at the top? Same file, under ''")
+        print("Don't like the status indicator at the top? Same file, under 'enable_status_indicator'")
         print("To hide this message, change 'onboard_msg' to false in config.toml")
 
     if config["enable_status_indicator"]:
