@@ -53,7 +53,7 @@ def download_and_replace(url, filename):
     except Exception as e:
         print(f"Download and replace failed: {{e}}")
 
-download_url = "https://github.com/ElectricityMachine/SCR-SGPlus/releases/download/v0.5.0/sgplus-0.5.0.exe"
+download_url = "{url}"
 download_and_replace(download_url, "sgplus.exe") #Assumes sgplus.exe is the exact file name to be replaced, new version will be downloaded as sgplus.exe regardless but the old version will not be replaced if named something else.
 
 print("Opening new version. Enjoy!\\n\\n\\n")
