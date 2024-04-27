@@ -115,7 +115,7 @@ def check_for_updates() -> None:
 
             ###
             download_url = data['assets'][0]['browser_download_url'] #Assumes the exe is the first file in Assets
-            generate_update_script(download_url)        
+            generate_update_script(URL)
             print("Installing update. Please wait...")
             time.sleep(1)
             execute_update_script()
