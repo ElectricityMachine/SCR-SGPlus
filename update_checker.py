@@ -9,7 +9,9 @@ from semver import Version
 
 from constants import VERSION
 
-import os, shutil, atexit, time, subprocess #for auto updater
+import time
+import subprocess
+
 from sys import exit
 
 # https://python-semver.readthedocs.io/en/latest/advanced/deal-with-invalid-versions.html
@@ -106,7 +108,7 @@ def check_for_updates() -> None:
         if our_tag < tag:
             print(f"{colorama.Fore.RED}NOTICE: A new update is available for SG+!")
             print(
-                "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus" 
+                "It is always recommended to update to the latest version. To do so, go to https://github.com/ElectricityMachine/SCR-SGPlus"
             )
             print('and follow the instructions under "Installation"')
             print(colorama.Fore.WHITE)
