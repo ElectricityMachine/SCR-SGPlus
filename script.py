@@ -1,5 +1,5 @@
 # Made by ElectricityMachine
-# Version: 0.5.0
+# Version: 0.5.1
 # Major changes: Status indicator, config file
 # Description: A script to automate tasks when signalling for SCR
 # Keybinds: 1 2 3 for Danger, Caution, and Proceed signal settings. C for Camera. R for Rollback Toggle.
