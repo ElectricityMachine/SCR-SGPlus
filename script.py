@@ -24,7 +24,7 @@ import pyperclip
 import tomli_w
 import tomllib
 import win32gui
-from keyboard import add_hotkey, press_and_release
+from keyboard import add_hotkey, press_and_release, on_press
 from keyboard import wait as keyboard_wait
 from mss import mss
 from numpy import array as np_array
@@ -543,10 +543,14 @@ def enabled_warning():
     beep.start()
 
 
-def auto_enable_on_enter():
+def auto_enable_on_enter(key):
     global disabled_reason
-    if win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox" and not enabled and disabled_reason == "CHAT":
-        toggle_disable("CHAT")
+    if key.name == 'enter':
+        if win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox" and not enabled and disabled_reason == "CHAT":
+            toggle_disable("CHAT")
+
+def start_listener():
+    on_press(auto_enable_on_enter)
 
 
 def init_config() -> None:
@@ -674,8 +678,7 @@ if __name__ == "__main__":
     for i in keybinds["warning_keys"]:
         add_hotkey(i, lambda: enabled_warning())
     if config["auto_enable_on_enter"]:
-        add_hotkey("enter", lambda: auto_enable_on_enter())
-        add_hotkey("shift+enter", lambda: auto_enable_on_enter())
+        start_listener()
     add_hotkey(keybinds["zone_a_message"], lambda: send_zone_message("A"))  # Num 1
     add_hotkey(keybinds["zone_b_message"], lambda: send_zone_message("B"))  # Num 2
     add_hotkey(keybinds["zone_c_message"], lambda: send_zone_message("C"))  # Num 3
