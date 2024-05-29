@@ -21,7 +21,7 @@ pyperclip==1.8.2
     # via -r requirements.txt
 pywin32==306
     # via -r requirements.txt
-requests==2.31.0
+requests==2.32.3
     # via -r requirements.txt
 semver==3.0.2
     # via -r requirements.txt
