@@ -12,7 +12,7 @@ mouse==0.7.1
     # via -r requirements.txt
 mss==9.0.1
     # via -r requirements.txt
-numpy==1.26.3
+numpy==2.0.0
     # via -r requirements.txt
 PyAutoIt==0.6.5
 pillow==10.3.0
