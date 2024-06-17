@@ -26,5 +26,5 @@ requests==2.31.0
 semver==3.0.2
     # via -r requirements.txt
 tomli_w==1.0.0
-urllib3==2.2.0
+urllib3==2.2.2
     # via requests
