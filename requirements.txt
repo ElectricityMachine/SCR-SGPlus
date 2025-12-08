@@ -10,7 +10,7 @@ keyboard==0.13.5
     # via -r requirements.txt
 mouse==0.7.1
     # via -r requirements.txt
-mss==9.0.1
+mss==9.0.2
     # via -r requirements.txt
 numpy==1.26.3
     # via -r requirements.txt
