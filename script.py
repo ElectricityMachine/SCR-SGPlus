@@ -85,6 +85,14 @@ def move_text_pos(window):
     window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
 
 
+def toggle_label_visibility(root):
+    if win32gui.GetWindowText(win32gui.GetForegroundWindow()) == "Roblox":
+        root.deiconify()
+    else:
+        root.withdraw()
+
+    root.after(100, lambda: toggle_label_visibility(root))
+
 def create_update_label(root):
     global label
     root.overrideredirect(True)
@@ -93,6 +101,8 @@ def create_update_label(root):
     label = tk.Label(root, text="SG+", bg="green", fg="white", font=("Consolas", 24))
     label.pack(fill="both", expand=True)
     move_text_pos(root)
+
+    toggle_label_visibility(root)
 
 
 def sleep_frames(frames: int, minwait: float = 0) -> None:
